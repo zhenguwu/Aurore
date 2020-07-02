@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Aurore Settings</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>label</key>
+			<string>Passcode</string>
+			<key>detail</key>
+			<string>AURPasscodeController</string>
+			<key>isController</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Music Link</string>
+			<key>isURL</key>
+			<true/>
+			<key>key</key>
+			<string>link</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Test</string>
+			<key>action</key>
+			<string>auroreTest</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Volume Options</string>
+			<key>footerText</key>
+			<string>Cascade time to max volume in seconds.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Time</string>
+			<key>default</key>
+			<integer>180</integer>
+			<key>isNumeric</key>
+			<true/>
+			<key>key</key>
+			<string>volumeTime</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Snooze Options</string>
+			<key>footerText</key>
+			<string>Volume of music during snooze (0 - 100)</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Snooze Time</string>
+			<key>default</key>
+			<integer>300</integer>
+			<key>isNumeric</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeTime</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Volume</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>isNumeric</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeVolume</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Allowed Snooze Counts</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<integer>1</integer>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>max</key>
+			<real>5</real>
+			<key>min</key>
+			<real>0</real>
+			<key>isSegmented</key>
+			<true/>
+			<key>segmentCount</key>
+			<integer>5</integer>
+			<key>showValue</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeCount</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Interface Options</string>
+			<key>footerText</key>
+			<string>This does not work at the moment as I haven't coded it yet lol</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>key</key>
+			<string>blurStyle</string>
+			<key>default</key>
+			<integer>2</integer>
+			<key>validTitles</key>
+			<array>
+				<string>Dark Blur</string>
+				<string>No Blur</string>
+				<string>Light Blur</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>1</integer>
+				<integer>2</integer>
+				<integer>3</integer>
+			</array>
+		</dict>
+		
+	</array>
+	<key>title</key>
+	<string>Aurore</string>
+</dict>
+</plist>

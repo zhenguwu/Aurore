@@ -1,0 +1,5 @@
+{ 
+    Filter = { 
+        Bundles = ( "com.spotify.client", "com.apple.springboard", "com.apple.mobiletimer", "com.apple.Music" );
+    }; 
+}

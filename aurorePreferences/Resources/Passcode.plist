@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+
+        <dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Device Passcode</string>
+            <key>footerText</key>
+            <string>Passcode is required to unlock the device temporarily to perform actions. Passcode is securely encrypted with AES128 and stored in a separate location. This field must be updated if the device passcode is changed.</string>
+		</dict>
+        <dict>
+			<key>cell</key>
+			<string>PSSecureEditTextCell</string>
+			<key>label</key>
+			<string>Passcode</string>
+			<key>isNumeric</key>
+			<true/>
+			<key>key</key>
+			<string>passcode</string>
+		</dict>
+        <dict>
+            <key>cell</key>
+            <string>PSButtonCell</string>
+			<key>label</key>
+			<string>Save to File</string>
+			<key>action</key>
+			<string>savePasscode</string>
+		</dict>
+
+    </array>
+    <key>title</key>
+	<string>Aurore</string>
+</dict>
+</plist>

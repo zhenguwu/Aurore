@@ -1,0 +1,1 @@
+NSString *const auroreVersion = @"1.0";
