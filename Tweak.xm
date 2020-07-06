@@ -1,18 +1,18 @@
 #import <spawn.h>
 #import <dlfcn.h>
 #import <RemoteLog3.h>
-#import <Cephei/HBPreferences.h>
 #import "tools/constants.h"
 #import "tools/helpers.h"
 #import "tools/MediaRemote.h"
 #import "tools/crypto.h"
+#import "clockviewcontrollers/auroreMusicTableViewController.h"
+#import "clockviewcontrollers/auroreSnoozeTableViewController.h"
+#import "clockviewcontrollers/auroreOthersTableViewController.h"
 #import "interfaces.h"
 #import "views/auroreModal.h"
 #import "tools/auroreAlarmManager.h"
 #import "views/auroreView.h"
 #import "scanner/auroreScanner.h"
-#import "clockviewcontrollers/auroreMusicTableViewController.h"
-#import "clockviewcontrollers/auroreSnoozeTableViewController.h"
 
 
 %group SpringBoard
@@ -20,15 +20,15 @@
 %hook NCNotificationDispatcher
 -(BOOL)_shouldPostNotificationRequest:(NCNotificationRequest *)req {
 	if ([[req sectionIdentifier] isEqualToString:@"com.apple.mobiletimer"]) {
-		RLog(@"%@", req);
-		NSDictionary *settings = [self auroreAlarmCheck:[req notificationIdentifier]];
-		if (settings) {
-			if ([[%c(SBLockScreenManager) sharedInstance] auroreUnlock:@"XyQO1pAhDniJ5m7EUjglnN5TCE5NmJ7e"]) {
-				[[%c(SBLockScreenManager) sharedInstance] auroreMain:settings];
-				return NO;
-			}
-		} else if ([[[req content] title] isEqualToString:@"Aurore Snooze"]) {
+		if ([[[req content] title] isEqualToString:@"Snooze Complete"]) {
 			[[%c(SBLockScreenManager) sharedInstance] auroreSnoozeComplete];
+			return NO;
+		}
+		NSDictionary *settings = [self auroreAlarmCheck:[req notificationIdentifier]];
+		if (settings && [settings[@"enabled"] boolValue]) {
+			if ([[%c(SBLockScreenManager) sharedInstance] auroreUnlock:@"XyQO1pAhDniJ5m7EUjglnN5TCE5NmJ7e"]) {
+				[[%c(SBLockScreenManager) sharedInstance] auroreMain:settings compatibility:NO];
+			}
 			return NO;
 		}
 	}
@@ -57,18 +57,21 @@
 %property (nonatomic,retain) auroreModal *auroreModal;
 %property (nonatomic,retain) auroreAlarmManager *alarmManager;
 %property (nonatomic,retain) NSDictionary *auroreSettings;
+%property (nonatomic,retain) NSDictionary *auroreSettings2;
+%property (nonatomic,retain) MTAlarm *backupAlarm;
 %property (nonatomic,retain) auroreView *auroreView;
 %property (nonatomic,assign) BOOL auroreDismissed;
+%property (nonatomic,assign) BOOL auroreCompletelyDismissed;
 %property (nonatomic,retain) SBVolumeControl *auroreVolumeContr;
 %property (nonatomic,retain) CSEnhancedModalButton *snoozeButton;
 %property (nonatomic,assign) float auroreVolume;
 %property (nonatomic,assign) int auroreSnoozeCount;
 
 - (id)init {
-	id org = %orig;
+	self = %orig;
 	self.auroreDismissed = YES;
+	self.auroreCompletelyDismissed = YES;
 
-	NSString *versionPath = @"/var/mobile/Library/Preferences/Aurore/version.txt";
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 	if ([fileManager fileExistsAtPath:versionPath]) {
 		NSString *versionInstalled = [NSString stringWithContentsOfFile:versionPath encoding:NSUTF8StringEncoding error:nil];
@@ -103,7 +106,7 @@
 	[[NSDistributedNotificationCenter defaultCenter] removeObserver:self name:@"com.zhenguwu.aurore" object:nil];
 	[[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(auroreProcessNotif:) name:@"com.zhenguwu.aurore" object:nil];
 	//[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(auroreLog:) name:nil object:nil];
-	return org;
+	return self;
 }
 
 %new
@@ -194,7 +197,7 @@
 - (void)auroreModalPurchase {
 	self.aurorePirate = nil;
 	[self auroreDismissModal:NO];
-	launchLink(@"https://repo.twickd.com/");
+	launchLink(@"https://repo.twickd.com/package/com.twickd.zhenguwu.aurore");
 }
 
 // Alarm Methods
@@ -203,16 +206,31 @@
 - (void)auroreProcessNotif:(NSNotification *)notif {
 	NSString *notifMessage = notif.userInfo[@"from"];
 	if ([notifMessage isEqualToString:@"musicSuccess"]) {
-		[self auroreMusicBegan];
+		[self auroreMusicBegan:YES];
+	} else if ([notifMessage isEqualToString:@"musicSuccessCompatibility"]) {
+		[self auroreMusicBegan:NO];
+	} else if ([notifMessage isEqualToString:@"musicFail"]) {
+		[self remoteLock:YES];
+		postAlert(@"Aurore Error", @"Music app failed to load link. Please double check that the link is valid and that there is an internet connection");
 	} else if ([notifMessage isEqualToString:@"settings"]) {
-		//if (!auroreErrorCheck()) {
-			[self auroreMain:[[[auroreAlarmManager alloc] init] getDefaults]];
-		//}
+		NSDictionary *defaults = [[[auroreAlarmManager alloc] init] getDefaults];
+		if ([defaults[@"link"] isEqualToString:@""]) {
+			postAlert(@"Aurore Error", @"Default music link is empty");
+		} else {
+			[self auroreMain:defaults compatibility:NO];
+		}
 	}
 }
 
 %new
 - (BOOL)auroreUnlock:(NSString *)key {
+	NSDate *alarmDate = [[NSDate date] dateByAddingTimeInterval:(120)];
+	NSDateComponents *components = [[NSCalendar currentCalendar] components:(NSCalendarUnitHour | NSCalendarUnitMinute) fromDate:alarmDate];
+	NSInteger hour = [components hour];
+	NSInteger minute = [components minute];
+	self.backupAlarm = [%c(MTAlarm) alarmWithHour:hour minute:minute];
+	[self.backupAlarm setTitle:@"Aurore Backup Alarm Fired"];
+	[(MTAlarmManager *)MSHookIvar<MTAlarmManager *>([%c(SBScheduledAlarmObserver) sharedInstance], "_alarmManager") addAlarm:self.backupAlarm];
 	if ([key isEqualToString:@"XyQO1pAhDniJ5m7EUjglnN5TCE5NmJ7e"]) {
 		[self _attemptUnlockWithPasscode:AES128Decrypt([[NSFileManager defaultManager] contentsAtPath:@"/var/mobile/Library/Preferences/Aurore/pass.txt"]) finishUIUnlock:NO];
 		if ([[self coverSheetViewController] isAuthenticated]) {
@@ -226,23 +244,63 @@
 }
 
 %new
-- (void)auroreMain:(NSDictionary *)settings {
-	self.auroreSettings = settings;
-	RLog(@"%@", self.auroreSettings);
+- (void)auroreMain:(NSDictionary *)settings compatibility:(BOOL)compatibility {
+	if (settings) {
+		self.auroreSettings = settings;
+		self.auroreSettings2 = [[NSDictionary alloc] initWithContentsOfFile:prefsPath];
+	}
+
+	self.auroreSnoozeCount = [self.auroreSettings[@"snoozeCount"] intValue];
+	globName = self.auroreSettings2[@"name"];
+
 	[self auroreVolumeSetup];
-	self.auroreSnoozeCount = (int)prefsSnoozeCount;
-	NSString *link = [NSString stringWithFormat:@"%@aurore", prefsLink];
-	launchLink(link);
+	NSString *shuffle = [self.auroreSettings[@"shuffle"] boolValue] ? @"1" : @"0";
+	NSString *link = compatibility ? [NSString stringWithFormat:@"%@%@AURORE", settings[@"link"], shuffle] : [NSString stringWithFormat:@"%@%@aurore", settings[@"link"], shuffle];
+	
+	// Check DRM
+	if ([[NSFileManager defaultManager] fileExistsAtPath:@"/var/lib/dpkg/info/com.zhenguwu.aurore.list"]) {
+		launchLink(link);
+	} else {
+		launchLink(@"https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			[self remoteLock:YES];
+			[self auroreLock:YES device:YES playback:YES volume:YES cc:YES];
+			self.auroreVolume = 1;
+			[self.auroreVolumeContr _setMediaVolumeForIAP:1];
+		});
+	}
 }
 
 %new
-- (void)auroreMusicBegan {
+- (void)auroreMusicBegan:(BOOL)retry {
 	self.auroreDismissed = NO;
+	self.auroreCompletelyDismissed = NO;
 	[self remoteLock:YES];
-	[self auroreVolumeLoop:0 delay:prefsVolumeTime/20 interval:0.05 count:20];
-	[self auroreLock:YES device:YES playback:YES volume:YES cc:YES];
+
+	[self auroreVolumeLoop:0 delay:([self.auroreSettings[@"volumeTime"] floatValue] * 60)/25 interval:0.04 * ([self.auroreSettings[@"volumeMax"] floatValue]/100) count:25];
+	[self auroreLock:YES device:[self.auroreSettings2[@"lockLS"] boolValue] playback:[self.auroreSettings2[@"lockPlayback"] boolValue] volume:[self.auroreSettings2[@"lockVolume"] boolValue] cc:[self.auroreSettings2[@"lockCC"] boolValue]];
 	[self aurorePlaybackStateChanged];
 	[self auroreOverlay];
+	
+	// Check if media is really playing
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+		MRMediaRemoteGetNowPlayingApplicationIsPlaying(dispatch_get_main_queue(), ^(Boolean isPlayingNow){
+			if (isPlayingNow) {
+				[(MTAlarmManager *)MSHookIvar<MTAlarmManager *>([%c(SBScheduledAlarmObserver) sharedInstance], "_alarmManager") removeAlarm:self.backupAlarm];
+			} else {
+				if (retry) {
+					[self auroreDismiss];
+					[self auroreMain:nil compatibility:YES];
+				} else {
+					[self auroreDismiss];
+					postAlert(@"Aurore Failed", @"Music playback failed both initially and after retry");
+				}
+			}
+			if (!retry) {
+				postAlert(@"Aurore Compatibility Mode", @"Music playback failed initially but succeeded in compatibility mode. If you see this often, enable compatibility mode in preferences");
+			}
+    	});
+	});
 }
 
 %new
@@ -290,9 +348,41 @@
 
 %new
 - (void)auroreVolumeSetup {
+	NSString *device = self.auroreSettings[@"bluetooth"];
+	if (![device isEqualToString:@""]) {
+		[self auroreConnectBluetooth:device loop:NO];
+	}
 	self.auroreVolume = 0;
 	self.auroreVolumeContr = MSHookIvar<SBVolumeControl *>([%c(SBMediaController) sharedInstance], "_volumeControl");
 	[self.auroreVolumeContr _setMediaVolumeForIAP:0];
+}
+
+%new
+- (void)auroreConnectBluetooth:(NSString *)device loop:(BOOL)loop {
+	BOOL foundDevice = NO;
+	for (BluetoothDevice *btdevice in [[%c(BluetoothManager) sharedInstance] pairedDevices]) {
+		if ([[btdevice name] isEqualToString:device]) {
+			foundDevice = YES;
+			if ([self.auroreSettings2[@"btForceReconnect"] boolValue]) {
+				if ([btdevice connected]) {
+					[btdevice disconnect];
+				}
+			}
+			[btdevice connect];
+			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)([self.auroreSettings2[@"btRetryTime"] floatValue] * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+				if (![btdevice connected]) {
+					if (loop) {
+						postAlert(@"Aurore", [NSString stringWithFormat:@"Unable to Connect Bluetooth Device Named: \"%@\"", device]);
+					} else {
+						[self auroreConnectBluetooth:device loop:YES];
+					}
+				}
+			});
+		}
+	}
+	if (!foundDevice) {
+		postAlert(@"Aurore", [NSString stringWithFormat:@"Device Named: \"%@\" is not a Paired Bluetooth Device", device]);
+	}
 }
 
 %new
@@ -324,24 +414,64 @@
 	CSMainPageContentViewController *lsMainViewContr = [bgViewContr mainPageContentViewController];
 	NCNotificationStructuredListViewController *lsNotifContr = [[lsMainViewContr combinedListViewController] notificationListViewController];
 
-	self.auroreView = [[auroreView alloc] initWithFrame:lsMainViewContr.view.bounds];
+	CGRect bounds = bgView.bounds;
+	CGRect botRect;
+	CGRect topRect;
+	CGFloat	botHeight;
+	CGFloat botWidth;
+	CGFloat topHeight;
+	CGFloat topWidth;
+	BOOL swapButtons = [self.auroreSettings2[@"swapButtons"] boolValue];
+	if (swapButtons) {
+		botHeight = [self.auroreSettings2[@"snoozeHeight"] floatValue];
+		botWidth = [self.auroreSettings2[@"snoozeWidth"] floatValue];
+		topHeight = [self.auroreSettings2[@"dismissHeight"] floatValue];
+		topWidth = [self.auroreSettings2[@"dismissWidth"] floatValue];
+	} else {
+		botHeight = [self.auroreSettings2[@"dismissHeight"] floatValue];
+		botWidth = [self.auroreSettings2[@"dismissWidth"] floatValue];
+		topHeight = [self.auroreSettings2[@"snoozeHeight"] floatValue];
+		topWidth = [self.auroreSettings2[@"snoozeWidth"] floatValue];
+	}
+	if ([self.auroreSettings2[@"buttonStyle"] intValue] == 1) {
+		CGFloat y1 = CGRectGetHeight(bounds) - [self.auroreSettings2[@"bottomOffset"] floatValue] - botHeight;
+		CGFloat x1 = CGRectGetWidth(bounds) / 2 - botWidth / 2;
+		botRect = CGRectMake(x1, y1, botWidth, botHeight);
 
-	[[self.auroreView setupSnoozeButton:CGRectMake(80, 650, 130, 50) alignment:0] addTarget:self action:@selector(auroreSnooze:) forControlEvents:UIControlEventTouchUpInside];
-	[[self.auroreView setupDismissButton:CGRectMake(80, 710, 130, 50) alignment:0] addTarget:self action:@selector(auroreDismiss) forControlEvents:UIControlEventTouchUpInside];
+		CGFloat y2 = y1 - [self.auroreSettings2[@"spacing"] floatValue] - topHeight;
+		CGFloat x2 = CGRectGetWidth(bounds) / 2 - topWidth / 2;
+		topRect = CGRectMake(x2, y2, topWidth, topHeight);
+	} else {
+		
+	}
+	
+	self.auroreView = [[auroreView alloc] initWithFrame:bounds];
+
+	if (swapButtons) {
+		[[self.auroreView setupSnoozeButton:botRect radius:[self.auroreSettings2[@"snoozeCornerRadius"] floatValue]] addTarget:self action:@selector(auroreSnooze:) forControlEvents:UIControlEventTouchUpInside];
+		[[self.auroreView setupDismissButton:topRect radius:[self.auroreSettings2[@"dismissCornerRadius"] floatValue]] addTarget:self action:@selector(auroreDismiss) forControlEvents:UIControlEventTouchUpInside];
+	} else {
+		[[self.auroreView setupSnoozeButton:topRect radius:[self.auroreSettings2[@"snoozeCornerRadius"] floatValue]] addTarget:self action:@selector(auroreSnooze:) forControlEvents:UIControlEventTouchUpInside];
+		[[self.auroreView setupDismissButton:botRect radius:[self.auroreSettings2[@"dismissCornerRadius"] floatValue]] addTarget:self action:@selector(auroreDismiss) forControlEvents:UIControlEventTouchUpInside];
+	}
 
 	[bgViewContr _addBedtimeGreetingBackgroundView];
-	[lsMainViewContr.view addSubview:self.auroreView];
+	[bgView addSubview:self.auroreView];
 
 	[[bgView scrollView] setScrollEnabled:NO];
-	[[bgView quickActionsView] cameraButton].userInteractionEnabled = NO;
-
+	if ([self.auroreSettings2[@"disableCamera"] boolValue]) {
+		[[bgView quickActionsView] cameraButton].userInteractionEnabled = NO;
+	}
+	if ([self.auroreSettings2[@"hideButtons"] boolValue]) {
+		[bgView quickActionsView].hidden = YES;
+	}
 
 	NCNotificationListView *notifWrapper = [lsNotifContr.view.subviews objectAtIndex:0];
-	[notifWrapper _scrollToTopIfPossible:YES];
+	[notifWrapper _scrollToTopIfPossible:NO];
 	[notifWrapper setScrollEnabled:NO];
 	for (UIView *lsView in notifWrapper.subviews) {
 		if ([lsView isKindOfClass:[%c(NCNotificationListView) class]]) {
-			//lsView.hidden = YES;
+			lsView.hidden = YES;
 		}
 	}
 }
@@ -353,30 +483,42 @@
 		self.auroreView = nil;
 	}
 	self.auroreDismissed = YES;
+	self.auroreCompletelyDismissed = YES;
 	[self auroreLock:NO device:YES playback:YES volume:YES cc:YES];
-		
-	MRMediaRemoteSendCommand(kMRPause, 0);
-	[self.auroreVolumeContr _setMediaVolumeForIAP:0];
+	
+	if ([self.auroreSettings2[@"pauseMusic"] boolValue]) {
+		MRMediaRemoteSendCommand(kMRPause, 0);
+	}
+	[self.auroreVolumeContr _setMediaVolumeForIAP:[self.auroreSettings2[@"setVolume"] floatValue] / 100];
 	self.auroreVolumeContr = nil;
 
 	CSCoverSheetViewController *bgViewContr = [self coverSheetViewController];
-	CSCoverSheetView * bgView = (CSCoverSheetView *)bgViewContr.view;
+	CSCoverSheetView *bgView = (CSCoverSheetView *)bgViewContr.view;
 	CSMainPageContentViewController *lsMainViewContr = [bgViewContr mainPageContentViewController];
 	CSCombinedListViewController *lsCombinedContr = [lsMainViewContr combinedListViewController];
 	NCNotificationStructuredListViewController *lsNotifContr = [lsCombinedContr notificationListViewController];
 	CSDNDBedtimeController *bedtimeContr = MSHookIvar<CSDNDBedtimeController *>(lsCombinedContr, "_dndBedtimeController");
 
 	[[bgView scrollView] setScrollEnabled:YES];
-	[[bgView quickActionsView] cameraButton].userInteractionEnabled = YES;
+	if ([self.auroreSettings2[@"disableCamera"] boolValue]) {
+		[[bgView quickActionsView] cameraButton].userInteractionEnabled = NO;
+	}
+	if ([self.auroreSettings2[@"hideButtons"] boolValue]) {
+		[bgView quickActionsView].hidden = NO;
+	}
 
-	[bedtimeContr setShouldShowGreeting:NO];
-	[bedtimeContr setShouldShowGreeting:YES];
+	if ([self.auroreSettings[@"showWeather"] boolValue]) {
+		[bedtimeContr setShouldShowGreeting:NO];
+		[bedtimeContr setShouldShowGreeting:YES];
+	} else {
+		[bgViewContr _removeBedtimeGreetingBackgroundViewAnimated:YES];
+	}
 
 	NCNotificationListView *notifWrapper = [lsNotifContr.view.subviews objectAtIndex:0];
 	[notifWrapper setScrollEnabled:YES];
 	for (UIView *lsView in notifWrapper.subviews) {
 		if ([lsView isKindOfClass:[%c(NCNotificationListView) class]]) {
-			//lsView.hidden = NO;
+			lsView.hidden = NO;
 		}
 	}	
 }
@@ -386,50 +528,52 @@
 	snoozeButton.userInteractionEnabled = NO;
 	[snoozeButton _buttonPressed:nil];
 	[snoozeButton setTitle:@"Snoozed" forState:UIControlStateNormal];	
-	self.auroreView.auroreDismissButton.hidden = YES;
 	
 	self.auroreDismissed = YES;
-	[self auroreLock:NO device:NO playback:YES volume:YES cc:NO];
-	if (prefsSnoozeVolume == 0) {
+	BOOL unlockLSCC = [self.auroreSettings2[@"unlockLSCC"] boolValue];
+	[self auroreLock:NO device:unlockLSCC playback:YES volume:YES cc:unlockLSCC];
+	if ([self.auroreSettings[@"snoozeVolume"] intValue] == 0) {
 		MRMediaRemoteSendCommand(kMRPause, 0);
 	} else {
-		self.auroreVolume = prefsSnoozeVolume / 100;
+		self.auroreVolume = [self.auroreSettings[@"snoozeVolume"] floatValue] / 100;
 		[self.auroreVolumeContr _setMediaVolumeForIAP:self.auroreVolume];
 	}
 
 	void *handle = dlopen("/usr/lib/libnotifications.dylib", RTLD_LAZY);                                         
 	NSString *uid = [[NSUUID UUID] UUIDString];        
-	[%c(CPNotification) showAlertWithTitle:@"Aurore Snooze" message:@"" userInfo:@{@"" : @""} badgeCount:0 soundName:nil
-						delay:10 repeats:NO bundleId:@"com.apple.mobiletimer" uuid:uid silent:YES];					
+	[%c(CPNotification) showAlertWithTitle:@"Snooze Complete" message:@"" userInfo:@{@"" : @""} badgeCount:0 soundName:nil
+						delay:[self.auroreSettings[@"snoozeTime"] floatValue] * 60 repeats:NO bundleId:@"com.apple.mobiletimer" uuid:uid silent:YES];					
 	dlclose(handle);
-
-	
 
 }
 
 %new
 - (void)auroreSnoozeComplete {
-	self.auroreDismissed = NO;
-	[self auroreVolumeLoop:0 delay:prefsVolumeTime/20 interval:0.05 count:20];
-	MRMediaRemoteSendCommand(kMRPlay, 0);
-	[self auroreLock:YES device:NO playback:YES volume:YES cc:NO];
-	if (self.auroreSnoozeCount == 1) {
-		[self.auroreView.auroreSnoozeButton removeFromSuperview];
-		self.auroreView.auroreSnoozeButton = nil;
-	} else {
-		self.auroreSnoozeCount--;
-		self.auroreView.auroreSnoozeButton.userInteractionEnabled = YES;
-		[self.auroreView.auroreSnoozeButton _buttonReleased:nil];
-		[self.auroreView.auroreSnoozeButton setTitle:@"Snooze" forState:UIControlStateNormal];
+	if (!self.auroreCompletelyDismissed) {
+		self.auroreDismissed = NO;
+		[self auroreVolumeLoop:0 delay:([self.auroreSettings[@"snoozeVolumeTime"] floatValue] * 60)/25 interval:0.04 * ([self.auroreSettings[@"volumeMax"] floatValue]/100) count:25];
+		[self auroreLock:YES device:[self.auroreSettings2[@"lockLS"] boolValue] playback:[self.auroreSettings2[@"lockPlayback"] boolValue] volume:[self.auroreSettings2[@"lockVolume"] boolValue] cc:[self.auroreSettings2[@"lockCC"] boolValue]];
+		[self aurorePlaybackStateChanged];
+		if (self.auroreSnoozeCount == 1) {
+			[self.auroreView.auroreSnoozeButton removeFromSuperview];
+			self.auroreView.auroreSnoozeButton = nil;
+		} else {
+			self.auroreSnoozeCount--;
+			self.auroreView.auroreSnoozeButton.userInteractionEnabled = YES;
+			[self.auroreView.auroreSnoozeButton _buttonReleased:nil];
+			[self.auroreView.auroreSnoozeButton setTitle:@"Snooze" forState:UIControlStateNormal];
+		}
+		if ([self.auroreSettings2[@"hideDismiss"] boolValue]) {
+			self.auroreView.auroreDismissButton.hidden = NO;
+		}
 	}
-	self.auroreView.auroreDismissButton.hidden = NO;
 }
 %end
 
 
 %hook CSDNDBedtimeGreetingViewController
 -(id)_greetingString {
-	return [NSString stringWithFormat:@"%@\n", %orig];
+	return [NSString stringWithFormat:@"%@\n%@", %orig, globName];
 }
 
 -(void)handleTouchEventForView:(id)arg1 {
@@ -469,6 +613,8 @@
 
 // Used for all music apps
 static BOOL auroreEnabled = NO;
+static BOOL auroreCompatibility = NO;
+static BOOL auroreShuffle;
 
 
 // Spotify Hooks
@@ -479,9 +625,18 @@ static BOOL auroreEnabled = NO;
 - (void)navigateToURI:(NSURL *)link sourceApplication:(id)arg2 annotation:(id)arg3 options:(NSInteger)arg4 interactionID:(id)arg5 completionHandler:(id)arg6 {
 	if (arg4 == 4) {
 		NSString *strLink = link.absoluteString;
-		if ([[strLink substringFromIndex: [strLink length] - 6] isEqualToString:@"aurore"]) {
+		NSString *strEnd = [strLink substringFromIndex: [strLink length] - 6];
+		if ([strEnd isEqualToString:@"aurore"] || [strEnd isEqualToString:@"AURORE"]) {
 			auroreEnabled = YES;
-			NSURL *newLink = [NSURL URLWithString:[strLink substringToIndex: [strLink length] - 6]];
+			auroreCompatibility = [strEnd isEqualToString:@"AURORE"];
+			NSString *cutLink = [strLink substringToIndex: [strLink length] - 6];
+			auroreShuffle = [[cutLink substringFromIndex: [cutLink length] - 1] isEqualToString:@"1"]; 
+			NSURL *newLink = [NSURL URLWithString:[strLink substringToIndex: [strLink length] - 1]];
+			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+				if (auroreEnabled) {
+					postNotification(@"musicFail");
+				}
+			});
 			%orig(newLink, arg2, arg3, arg4, arg5, arg6);
 		} else {
 			%orig;
@@ -498,9 +653,23 @@ static BOOL auroreEnabled = NO;
 	%orig;
 	if (auroreEnabled) {
 		auroreEnabled = NO;
-		[[self playViewModel] singleStateShufflePlay];
-		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-			postNotification(@"musicSuccess");
+		if (auroreShuffle) {
+			[[self playViewModel] singleStateShufflePlay];
+		} else {
+			[[self playViewModel] singleStateForceLinearPlay];
+		}
+		double delay;
+		if (auroreCompatibility) {
+			delay = 2.0;
+		} else {
+			delay = 1.0;
+		}
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			if (auroreCompatibility) {
+				postNotification(@"musicSuccessCompatibility");
+			} else {
+				postNotification(@"musicSuccess");
+			}
 		});
 	}
 }
@@ -510,10 +679,20 @@ static BOOL auroreEnabled = NO;
 - (void)playURIInContext:(id)arg1 {
 	if (auroreEnabled) {
 		auroreEnabled = NO;
-		[[self player] setShufflingContext:YES];
+		[[self player] setShufflingContext:auroreShuffle];
 		[self playURIInContext:nil];
-		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-			postNotification(@"musicSuccess");
+		double delay;
+		if (auroreCompatibility) {
+			delay = 2.0;
+		} else {
+			delay = 1.0;
+		}
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			if (auroreCompatibility) {
+				postNotification(@"musicSuccessCompatibility");
+			} else {
+				postNotification(@"musicSuccess");
+			}
 		});
 	} else {
 		%orig;
@@ -534,11 +713,20 @@ static BOOL auroreEnabled = NO;
 - (void)scene:(id)scene openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts {
 	UIOpenURLContext *oldURLContexts = (UIOpenURLContext *)[[URLContexts allObjects] objectAtIndex:0];
 	NSString *strLink = oldURLContexts.URL.absoluteString;
-	if ([[strLink substringFromIndex: [strLink length] - 6] isEqualToString:@"aurore"]) {
+	NSString *strEnd = [strLink substringFromIndex: [strLink length] - 6];
+	if ([strEnd isEqualToString:@"aurore"] || [strEnd isEqualToString:@"AURORE"]) {
 		auroreEnabled = YES;
-		NSURL *newLink = [NSURL URLWithString:[strLink substringToIndex: [strLink length] - 6]];
+		auroreCompatibility = [strEnd isEqualToString:@"AURORE"];
+		NSString *cutLink = [strLink substringToIndex: [strLink length] - 6];
+		auroreShuffle = [[cutLink substringFromIndex: [cutLink length] - 1] isEqualToString:@"1"];
+		NSURL *newLink = [NSURL URLWithString:[cutLink substringToIndex: [cutLink length] - 1]];
 		UIOpenURLContext *newOpenURLContext = [[%c(UIOpenURLContext) alloc] initWithURL:newLink options:oldURLContexts.options];
 		NSSet *newURLContexts = [NSSet setWithObject:newOpenURLContext];
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			if (auroreEnabled) {
+				postNotification(@"musicFail");
+			}
+		});
 		%orig(scene, newURLContexts);
 	} else {
 		%orig;
@@ -548,14 +736,23 @@ static BOOL auroreEnabled = NO;
 - (void)scene:(id)scene willConnectToSession:(id)session options:(UISceneConnectionOptions *)connectionOptions {
 	UIOpenURLContext *oldURLContexts = (UIOpenURLContext *)([[connectionOptions.URLContexts allObjects] objectAtIndex:0]);
 	NSString *strLink = oldURLContexts.URL.absoluteString;
-	if ([[strLink substringFromIndex: [strLink length] - 6] isEqualToString:@"aurore"]) {
+	NSString *strEnd = [strLink substringFromIndex: [strLink length] - 6];
+	if ([strEnd isEqualToString:@"aurore"] || [strEnd isEqualToString:@"AURORE"]) {
 		auroreEnabled = YES;
-		NSURL *newLink = [NSURL URLWithString:[strLink substringToIndex: [strLink length] - 6]];
+		auroreCompatibility = [strEnd isEqualToString:@"AURORE"];
+		NSString *cutLink = [strLink substringToIndex: [strLink length] - 6];
+		auroreShuffle = [[cutLink substringFromIndex: [cutLink length] - 1] isEqualToString:@"1"];
+		NSURL *newLink = [NSURL URLWithString:[cutLink substringToIndex: [cutLink length] - 1]];
 		UIOpenURLContext *newOpenURLContext = [[%c(UIOpenURLContext) alloc] initWithURL:newLink options:oldURLContexts.options];
 		NSSet *newURLContexts = [NSSet setWithObject:newOpenURLContext];
 		_UISceneConnectionOptionsContext *newOptionsContext = [%c(_UISceneConnectionOptionsContext) alloc];
 		newOptionsContext.launchOptionsDictionary = @{@"_UISceneConnectionOptionsURLContextKey" : newURLContexts};
 		UISceneConnectionOptions *newConnectionOptions = [[%c(UISceneConnectionOptions) alloc] _initWithConnectionOptionsContext:newOptionsContext fbsScene:connectionOptions._fbsScene specification:connectionOptions._specification];
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			if (auroreEnabled) {
+				postNotification(@"musicFail");
+			}
+		});
 		%orig(scene, session, newConnectionOptions);
 	} else {
 		%orig;
@@ -566,17 +763,31 @@ static BOOL auroreEnabled = NO;
 
 %hook MusicPlayControls
 - (id)initWithFrame:(CGRect)frame {
-	id x = %orig;
+	self = %orig;
 	if (auroreEnabled) {
 		auroreEnabled = NO;
-		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-			[(UIButton *)[self accessibilityShuffleButton] sendActionsForControlEvents:64];
-			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-				postNotification(@"musicSuccess");
+		double delay;
+		if (auroreCompatibility) {
+			delay = 2.0;
+		} else {
+			delay = 1.0;
+		}
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			if (auroreShuffle) {
+				[[self accessibilityShuffleButton] sendActionsForControlEvents:64];
+			} else {
+				[[self accessibilityPlayButton] sendActionsForControlEvents:64];
+			}
+			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay/2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+				if (auroreCompatibility) {
+					postNotification(@"musicSuccessCompatibility");
+				} else {
+					postNotification(@"musicSuccess");
+				}
 			});
 		});
 	}
-	return x;
+	return self;
 }
 %end
 
@@ -596,7 +807,6 @@ static BOOL auroreEnabled = NO;
 
 %hook MTAlarmDataSource
 - (id)removeAlarm:(MTMutableAlarm *)alarm {
-	RLog(@"alarm removed");
 	[[[auroreAlarmManager alloc] init] setAlarm:[alarm alarmIDStr] withData:nil];
 	return %orig;
 }
@@ -613,6 +823,7 @@ static BOOL auroreEnabled = NO;
 %property (nonatomic,retain) auroreAlarmManager *alarmManager;
 %property (nonatomic,assign) BOOL auroreEnabled;
 %property (nonatomic,retain) NSMutableDictionary *auroreSettings;
+%property (nonatomic,assign) BOOL auroreSettingsChanged;
 
 - (id)initWithAlarm:(MTAlarm *)arg1 isNewAlarm:(BOOL)arg2 {
 	self.alarmManager = [[auroreAlarmManager alloc] init];
@@ -623,26 +834,17 @@ static BOOL auroreEnabled = NO;
 		self.auroreSettings = [self.alarmManager getAlarm:[arg1 alarmIDStr]];
 	}
 	self.auroreEnabled = [[self.auroreSettings objectForKey:@"enabled"] boolValue];
-
-	/*NSString* link = @"https://open.spotify.com/playlist/5bFqxODjPiAOUMK12T3xrD?si=bq6KgfN1RaqHE2PSXDYDPw";
-	NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:link] cachePolicy:0 timeoutInterval:5];
-	NSURLResponse *response=nil;
-	NSError *error=nil;
-	NSData *data=[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-	NSString *htmlString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-	//NSString *htmlString = [NSString stringWithContentsOfURL:myURL encoding: NSUTF8StringEncoding error:nil];
-	NSRegularExpression *regex = [NSRegularExpression
-                              regularExpressionWithPattern:@"<title[^>]*>(.*?)</title>"
-                              options:0
-                              error:&error];
-	NSTextCheckingResult *result = [regex firstMatchInString:htmlString options:NSMatchingReportProgress range:NSMakeRange(0, [htmlString length])];
-	NSRange titleRange = [result rangeAtIndex:1];
-	NSString *title = [htmlString substringWithRange:titleRange];
-	RLog(title);*/
+	self.auroreSettingsChanged = NO;
+	
 	return %orig;
 	
 }
-
+/*
+- (void)viewDidLoad {
+	%orig;
+	[(MTAAlarmEditView *)self.view settingsTable].backgroundColor = [UIColor blackColor];
+}
+*/
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
 	if (section == 0) {
 		if (self.auroreEnabled) {
@@ -650,7 +852,7 @@ static BOOL auroreEnabled = NO;
 		}
 		return 5;
 	} else {
-		return 1;
+		return %orig;
 	}
 }
 
@@ -668,14 +870,28 @@ static BOOL auroreEnabled = NO;
 			return auroreSwitchCell;
 		} else if (self.auroreEnabled) {
 		 	if (indexPath.row == 3) {
-				UITableViewCell *auroreSettingsCell = %orig(tableView, [NSIndexPath indexPathForRow:0 inSection:0]);
-				auroreSettingsCell.textLabel.text = @"Music Options";
-				auroreSettingsCell.detailTextLabel.text = @"Spotify";
+				UITableViewCell *auroreSettingsCell = %orig(tableView, [NSIndexPath indexPathForRow:1 inSection:0]);
+				auroreSettingsCell.textLabel.text = @"Options";
+				if ([self.auroreSettings[@"linkContext"] isEqualToString:@""]) {
+					if ([self.auroreSettings[@"link"] isEqualToString:@""]) {
+						auroreSettingsCell.detailTextLabel.text = @"Empty Link";
+					} else {
+						auroreSettingsCell.detailTextLabel.text = [self auroreUpdateLinkContext:YES link:self.auroreSettings[@"link"] reload:NO];
+					}
+				} else {
+					auroreSettingsCell.detailTextLabel.text = self.auroreSettings[@"linkContext"];
+				}
 				return auroreSettingsCell;
 			} else if (indexPath.row == 4) {
 				UITableViewCell *auroreSettingsCell = %orig(tableView, [NSIndexPath indexPathForRow:0 inSection:0]);
-				auroreSettingsCell.textLabel.text = @"Snooze Options";
-				auroreSettingsCell.detailTextLabel.text = @"";
+				auroreSettingsCell.textLabel.text = @"Snooze";
+				if ([self.auroreSettings[@"snoozeEnabled"] boolValue]) {
+					NSString *min = [self.auroreSettings[@"snoozeTime"] intValue] == 1 ? @"Minute" : @"Minutes";
+					NSString *snz = [self.auroreSettings[@"snoozeCount"] intValue] == 1 ? @"Snooze" : @"Snoozes"; 
+					auroreSettingsCell.detailTextLabel.text = [NSString stringWithFormat:@"%@ %@ | %@ %@", [self.auroreSettings[@"snoozeCount"] stringValue], snz, [self.auroreSettings[@"snoozeTime"] stringValue], min];
+				} else {
+					auroreSettingsCell.detailTextLabel.text = @"Disabled";
+				}
 				return auroreSettingsCell;
 			} else if (indexPath.row == 5) {
 				UITableViewCell *auroreSettingsCell = %orig(tableView, [NSIndexPath indexPathForRow:0 inSection:0]);
@@ -691,54 +907,339 @@ static BOOL auroreEnabled = NO;
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	if (indexPath.section == 0) {
 		if (self.auroreEnabled) {
-			if (indexPath.row == 0 || indexPath.row == 1) {
-				%orig;
-			} else if (indexPath.row == 3) {
-				auroreMusicTableViewController *musicTableController = [[auroreMusicTableViewController alloc] initWithSettings:self.auroreSettings];
-
+			if (indexPath.row == 3) {
+				auroreMusicTableViewController *musicTableController = [[auroreMusicTableViewController alloc] initWithSettings:self.auroreSettings inset:globInset isSleep:NO];
+				musicTableController.delegate = self;
 				[self.navigationController pushViewController:musicTableController animated:YES];
 			} else if (indexPath.row == 4) {
-				auroreSnoozeTableViewController *snoozeTableController = [[auroreSnoozeTableViewController alloc] initWithSettings:self.auroreSettings];
-
+				auroreSnoozeTableViewController *snoozeTableController = [[auroreSnoozeTableViewController alloc] initWithSettings:self.auroreSettings inset:globInset isSleep:NO];
+				snoozeTableController.delegate = self;
 				[self.navigationController pushViewController:snoozeTableController animated:YES];
 			} else if (indexPath.row == 5) {
+				auroreOthersTableViewController *othersTableController = [[auroreOthersTableViewController alloc] initWithSettings:self.auroreSettings inset:globInset isSleep:NO];
+				othersTableController.delegate = self;
+				[self.navigationController pushViewController:othersTableController animated:YES];
 			}
-		} else if (indexPath.row != 4) {
+		}
+	}
+}
+
+- (void)_doneButtonClicked:(id)arg1 {
+	self.auroreSettings[@"enabled"] = @(self.auroreEnabled);
+	if (self.auroreSettingsChanged) {
+		[self.alarmManager setAlarm:[[self editedAlarm] alarmIDStr] withData:self.auroreSettings];
+	}
+	%orig;
+}
+- (void)viewWillAppear:(BOOL)animated {
+    %orig;
+	[self.parentViewController setModalInPresentation:NO];
+}
+
+%new
+- (void)auroreSwitchChanged:(UISwitch *)auroreSwitch {
+	self.auroreEnabled = auroreSwitch.on;
+	self.auroreSettingsChanged = YES;
+	
+	UITableView *settingsTable = [(MTAAlarmEditView *)self.view settingsTable];
+
+	NSArray *path1 = @[[NSIndexPath indexPathForRow:2 inSection:0], [NSIndexPath indexPathForRow:3 inSection:0]];
+	NSArray *path2 = @[[NSIndexPath indexPathForRow:3 inSection:0], [NSIndexPath indexPathForRow:4 inSection:0], [NSIndexPath indexPathForRow:5 inSection:0]];
+
+	[settingsTable beginUpdates];
+	if (self.auroreEnabled) {
+		[settingsTable deleteRowsAtIndexPaths:path1 withRowAnimation:UITableViewRowAnimationFade];
+		[settingsTable insertRowsAtIndexPaths:path2 withRowAnimation:UITableViewRowAnimationFade];
+	} else {
+		[settingsTable deleteRowsAtIndexPaths:path2 withRowAnimation:UITableViewRowAnimationFade];
+		[settingsTable insertRowsAtIndexPaths:path1 withRowAnimation:UITableViewRowAnimationFade];
+	}
+	[settingsTable endUpdates];
+
+}
+
+%new
+- (void)reloadTableCellAtRow:(NSInteger)row {
+	UITableView *settingsTable = [(MTAAlarmEditView *)self.view settingsTable];
+	[settingsTable beginUpdates];
+	[settingsTable reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:row inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
+	[settingsTable endUpdates];
+}
+
+%new
+- (void)auroreMusicTableControllerUpdateLink:(NSString *)link shuffle:(NSNumber *)shuffle volumeMax:(NSNumber *)volumeMax volumeTime:(NSNumber *)volumeTime bluetooth:(NSString *)bluetooth airplay:(NSString *)airplay {
+	self.auroreSettings[@"link"] = link;
+	self.auroreSettings[@"shuffle"] = shuffle;
+	self.auroreSettings[@"volumeMax"] = volumeMax;
+	self.auroreSettings[@"volumeTime"] = volumeTime;
+	self.auroreSettings[@"bluetooth"] = bluetooth;
+	self.auroreSettings[@"airplay"] = airplay;
+	self.auroreSettingsChanged = YES;
+}
+
+%new
+- (NSString *)auroreUpdateLinkContext:(BOOL)correct link:(NSString *)link reload:(BOOL)reload {
+	NSString *title;
+	if (correct) {
+		
+		NSURL *urlRequest = [NSURL URLWithString:link];
+		NSError *error = nil;
+
+		NSString *htmlString = [NSString stringWithContentsOfURL:urlRequest encoding:NSUTF8StringEncoding error:&error];
+
+		if (htmlString) {
+			NSRegularExpression *regex = [NSRegularExpression
+									regularExpressionWithPattern:@"<title[^>]*>(.*?)</title>"
+									options:0
+									error:&error];
+			NSTextCheckingResult *result = [regex firstMatchInString:htmlString options:NSMatchingReportProgress range:NSMakeRange(0, [htmlString length])];
+			NSRange titleRange = [result rangeAtIndex:1];
+			title = [htmlString substringWithRange:titleRange];
+			if ([title containsString:@"&#039;"]) {
+				title = [title stringByReplacingOccurrencesOfString:@"&#039;" withString:@"'"];
+			}
+			self.auroreSettings[@"linkContext"] = title;
+			if (!reload) {
+				[self.alarmManager setAlarm:[[self editedAlarm] alarmIDStr] withData:self.auroreSettings];
+			}
+		} else {
+			self.auroreSettings[@"linkContext"] = @"";
+			return @"Link Loading Error";
+		}
+	} else {
+		self.auroreSettings[@"link"] = @"";
+		self.auroreSettings[@"linkContext"] = @"";
+	}
+	if (reload) {
+		[self reloadTableCellAtRow:3];
+	}
+	return title;
+}
+
+%new
+- (void)auroreSnoozeTableControllerUpdateSnoozeEnabled:(NSNumber *)snoozeEnabled snoozeCount:(NSNumber *)snoozeCount snoozeTime:(NSNumber *)snoozeTime snoozeVolume:(NSNumber *)snoozeVolume snoozeVolumeTime:(NSNumber *)snoozeVolumeTime {
+	self.auroreSettings[@"snoozeEnabled"] = snoozeEnabled;
+	self.auroreSettings[@"snoozeCount"] = snoozeCount;
+	self.auroreSettings[@"snoozeTime"] = snoozeTime;
+	self.auroreSettings[@"snoozeVolume"] = snoozeVolume;
+	self.auroreSettings[@"snoozeVolumeTime"] = snoozeVolumeTime;
+	self.auroreSettingsChanged = YES;
+	[self reloadTableCellAtRow:4];
+}
+
+%new
+- (void)auroreOthersTableControllerUpdateShowWeather:(NSNumber *)showWeather dismissAction:(NSNumber *)dismissAction shortcut:(NSString *)shortcut {
+	self.auroreSettings[@"showWeather"] = showWeather;
+	self.auroreSettings[@"dismissAction"] = dismissAction;
+	self.auroreSettings[@"shortcut"] = shortcut;
+	self.auroreSettingsChanged = YES;
+	[self reloadTableCellAtRow:5];
+}
+
+%end
+
+%hook MTASleepDetailViewController
+%property (nonatomic,retain) auroreAlarmManager *alarmManager2;
+%property (nonatomic,assign) BOOL auroreEnabled;
+%property (nonatomic,retain) NSMutableDictionary *auroreSettings;
+
+- (id)initWithAlarmManager:(id)arg1 dataSource:(id)arg2 {
+	self.alarmManager2 = [[auroreAlarmManager alloc] init];
+	self.auroreSettings = [self.alarmManager2 getSleepAlarm];
+	self.auroreEnabled = [[self.auroreSettings objectForKey:@"enabled"] boolValue];
+
+	return %orig;
+}
+/*
+- (void)viewDidLoad {
+	self.view.backgroundColor = [UIColor colorWithRed:0.172549 green:0.172549 blue:0.180392 alpha:1.0];
+}*/
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+	if (section == 0) {
+		if (self.auroreEnabled) {
+			return 5;
+		}
+		return 2;
+	} else {
+		return %orig;
+	}
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+	if (indexPath.section == 0) {
+		if (indexPath.row == 0) {
+			return %orig;
+		} else if (indexPath.row == 1) {
+			UITableViewCell *auroreSwitchCell = %orig(tableView, [NSIndexPath indexPathForRow:0 inSection:0]);
+			auroreSwitchCell.textLabel.text = @"Music";
+
+			UISwitch *auroreSwitch = [[UISwitch alloc] initWithFrame:CGRectZero];
+			[auroreSwitch setOn:self.auroreEnabled animated:NO];
+			[auroreSwitch addTarget:self action:@selector(auroreSwitchChanged:) forControlEvents:UIControlEventValueChanged];
+			auroreSwitchCell.accessoryView = auroreSwitch;
+
+			return auroreSwitchCell;
+		} else {
+		 	UITableViewCell *auroreSettingsCell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"auroreCell"];
+			auroreSettingsCell.accessoryView = nil;
+			auroreSettingsCell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+			if (indexPath.row == 2) {
+				auroreSettingsCell.textLabel.text = @"Options";
+				if ([self.auroreSettings[@"linkContext"] isEqualToString:@""]) {
+					if ([self.auroreSettings[@"link"] isEqualToString:@""]) {
+						auroreSettingsCell.detailTextLabel.text = @"Empty Link";
+					} else {
+						auroreSettingsCell.detailTextLabel.text = [self auroreUpdateLinkContext:YES link:self.auroreSettings[@"link"] reload:NO];
+					}
+				} else {
+					auroreSettingsCell.detailTextLabel.text = self.auroreSettings[@"linkContext"];
+				}
+			} else if (indexPath.row == 3) {
+				auroreSettingsCell.textLabel.text = @"Snooze";
+				if ([self.auroreSettings[@"snoozeEnabled"] boolValue]) {
+					NSString *min = [self.auroreSettings[@"snoozeTime"] intValue] == 1 ? @"Minute" : @"Minutes";
+					NSString *snz = [self.auroreSettings[@"snoozeCount"] intValue] == 1 ? @"Snooze" : @"Snoozes"; 
+					auroreSettingsCell.detailTextLabel.text = [NSString stringWithFormat:@"%@ %@ | %@ %@", [self.auroreSettings[@"snoozeCount"] stringValue], snz, [self.auroreSettings[@"snoozeTime"] stringValue], min];
+				} else {
+					auroreSettingsCell.detailTextLabel.text = @"Disabled";
+				}
+			} else if (indexPath.row == 4) {
+				auroreSettingsCell.textLabel.text = @"Other Options";
+				auroreSettingsCell.detailTextLabel.text = @"";
+			}
+			return auroreSettingsCell;
+		}
+	}
+	return %orig;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+	return 0;
+}
+
+%new
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+	if (indexPath.section == 0) {
+		if (indexPath.row == 0 || indexPath.row == 1) {
 			%orig;
+		} else if (indexPath.row == 2) {
+			RLog(@"test");
+			auroreMusicTableViewController *musicTableController = [[auroreMusicTableViewController alloc] initWithSettings:self.auroreSettings inset:globInset isSleep:YES];
+			musicTableController.delegate = self;
+			[self.navigationController pushViewController:musicTableController animated:YES];
+		} else if (indexPath.row == 3) {
+			auroreSnoozeTableViewController *snoozeTableController = [[auroreSnoozeTableViewController alloc] initWithSettings:self.auroreSettings inset:globInset isSleep:YES];
+			snoozeTableController.delegate = self;
+			[self.navigationController pushViewController:snoozeTableController animated:YES];
+		} else if (indexPath.row == 4) {
+			auroreOthersTableViewController *othersTableController = [[auroreOthersTableViewController alloc] initWithSettings:self.auroreSettings inset:globInset isSleep:YES];
+			othersTableController.delegate = self;
+			[self.navigationController pushViewController:othersTableController animated:YES];
 		}
 	} else {
 		%orig;
 	}
 }
 
-- (void)_doneButtonClicked:(id)arg1 {
+%new
+- (void)auroreSaveSettings {
 	self.auroreSettings[@"enabled"] = @(self.auroreEnabled);
-	[self.alarmManager setAlarm:[[self editedAlarm] alarmIDStr] withData:self.auroreSettings];
-	%orig;
+	[self.alarmManager2 setSleepAlarmWithData:self.auroreSettings];
 }
 
 %new
 - (void)auroreSwitchChanged:(UISwitch *)auroreSwitch {
 	self.auroreEnabled = auroreSwitch.on;
-	
-	UITableView *settingsTable = [(MTAAlarmEditView *)self.view settingsTable];
 
-	NSArray *deleteIndexPaths;
-	NSArray *insertIndexPaths;
+	NSArray *path = @[[NSIndexPath indexPathForRow:2 inSection:0], [NSIndexPath indexPathForRow:3 inSection:0], [NSIndexPath indexPathForRow:4 inSection:0]];
+
+	[self.tableView beginUpdates];
 	if (self.auroreEnabled) {
-		deleteIndexPaths = [NSArray arrayWithObjects:[NSIndexPath indexPathForRow:2 inSection:0], [NSIndexPath indexPathForRow:3 inSection:0], nil];
-		insertIndexPaths = [NSArray arrayWithObjects:[NSIndexPath indexPathForRow:3 inSection:0], [NSIndexPath indexPathForRow:4 inSection:0], [NSIndexPath indexPathForRow:5 inSection:0], nil];
+		[self.tableView insertRowsAtIndexPaths:path withRowAnimation:UITableViewRowAnimationFade];
 	} else {
-		deleteIndexPaths = [NSArray arrayWithObjects:[NSIndexPath indexPathForRow:3 inSection:0], [NSIndexPath indexPathForRow:4 inSection:0], [NSIndexPath indexPathForRow:5 inSection:0], nil];
-		insertIndexPaths = [NSArray arrayWithObjects:[NSIndexPath indexPathForRow:2 inSection:0], [NSIndexPath indexPathForRow:3 inSection:0], nil];
+		[self.tableView deleteRowsAtIndexPaths:path withRowAnimation:UITableViewRowAnimationFade];
 	}
-
-	[settingsTable beginUpdates];
-	[settingsTable deleteRowsAtIndexPaths:deleteIndexPaths withRowAnimation:UITableViewRowAnimationFade];
-	[settingsTable insertRowsAtIndexPaths:insertIndexPaths withRowAnimation:UITableViewRowAnimationFade];
-	[settingsTable endUpdates];
-
+	[self.tableView endUpdates];
+	
+	[self auroreSaveSettings];
 }
+
+%new
+- (void)reloadTableCellAtRow:(NSInteger)row {
+	[self.tableView beginUpdates];
+	[self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:row inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
+	[self.tableView endUpdates];
+}
+
+%new
+- (void)auroreMusicTableControllerUpdateLink:(NSString *)link shuffle:(NSNumber *)shuffle volumeMax:(NSNumber *)volumeMax volumeTime:(NSNumber *)volumeTime bluetooth:(NSString *)bluetooth airplay:(NSString *)airplay {
+	self.auroreSettings[@"link"] = link;
+	self.auroreSettings[@"shuffle"] = shuffle;
+	self.auroreSettings[@"volumeMax"] = volumeMax;
+	self.auroreSettings[@"volumeTime"] = volumeTime;
+	self.auroreSettings[@"bluetooth"] = bluetooth;
+	self.auroreSettings[@"airplay"] = airplay;
+	[self auroreSaveSettings];
+}
+
+%new
+- (NSString *)auroreUpdateLinkContext:(BOOL)correct link:(NSString *)link reload:(BOOL)reload {
+	NSString *title;
+	if (correct) {
+		NSURL *urlRequest = [NSURL URLWithString:link];
+		NSError *error = nil;
+
+		NSString *htmlString = [NSString stringWithContentsOfURL:urlRequest encoding:NSUTF8StringEncoding error:&error];
+
+		if (htmlString) {
+			NSRegularExpression *regex = [NSRegularExpression
+									regularExpressionWithPattern:@"<title[^>]*>(.*?)</title>"
+									options:0
+									error:&error];
+			NSTextCheckingResult *result = [regex firstMatchInString:htmlString options:NSMatchingReportProgress range:NSMakeRange(0, [htmlString length])];
+			NSRange titleRange = [result rangeAtIndex:1];
+			title = [htmlString substringWithRange:titleRange];
+			if ([title containsString:@"&#039;"]) {
+				title = [title stringByReplacingOccurrencesOfString:@"&#039;" withString:@"'"];
+			}
+			self.auroreSettings[@"linkContext"] = title;
+			if (!reload) {
+				[self.alarmManager2 setSleepAlarmWithData:self.auroreSettings];
+			}
+		} else {
+			self.auroreSettings[@"linkContext"] = @"";
+			return @"Link Loading Error";
+		}
+	} else {
+		self.auroreSettings[@"link"] = @"";
+		self.auroreSettings[@"linkContext"] = @"";
+	}
+	if (reload) {
+		[self reloadTableCellAtRow:2];
+	}
+	return title;
+}
+
+%new
+- (void)auroreSnoozeTableControllerUpdateSnoozeEnabled:(NSNumber *)snoozeEnabled snoozeCount:(NSNumber *)snoozeCount snoozeTime:(NSNumber *)snoozeTime snoozeVolume:(NSNumber *)snoozeVolume snoozeVolumeTime:(NSNumber *)snoozeVolumeTime {
+	self.auroreSettings[@"snoozeEnabled"] = snoozeEnabled;
+	self.auroreSettings[@"snoozeCount"] = snoozeCount;
+	self.auroreSettings[@"snoozeTime"] = snoozeTime;
+	self.auroreSettings[@"snoozeVolume"] = snoozeVolume;
+	self.auroreSettings[@"snoozeVolumeTime"] = snoozeVolumeTime;
+	[self auroreSaveSettings];
+	[self reloadTableCellAtRow:3];
+}
+
+%new
+- (void)auroreOthersTableControllerUpdateShowWeather:(NSNumber *)showWeather dismissAction:(NSNumber *)dismissAction shortcut:(NSString *)shortcut {
+	self.auroreSettings[@"showWeather"] = showWeather;
+	self.auroreSettings[@"dismissAction"] = dismissAction;
+	self.auroreSettings[@"shortcut"] = shortcut;
+	[self auroreSaveSettings];
+	[self reloadTableCellAtRow:4];
+}
+
 %end
 
 %end
@@ -748,29 +1249,20 @@ static BOOL auroreEnabled = NO;
 
 %hook UITableView
 - (id)initWithFrame:(CGRect)frame style:(UITableViewStyle)style {
-	id x = %orig;
+	self = %orig;
 	if (frame.origin.y != 44 && ([[self.backgroundColor _systemColorName] isEqualToString:@"systemGroupedBackgroundColor"] || ([self class] == [%c(MTAStopwatchTableView) class]))) {
 		self = %orig(frame, UITableViewStyleInsetGrouped);
-		return self;
 	}
-	return x;
+	return self;
 	
 }
 %end
 
 %end
 
-/*
-%new
 
 
-%new
-- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-	return 30;
-}*/
-
-%group ClockSound
-
+%group ClockSongs
 %hook TKTonePickerViewController
 - (void)viewDidLoad {
 	%orig;
@@ -778,46 +1270,43 @@ static BOOL auroreEnabled = NO;
 	[self setNoneAtTop:YES];
 }
 
+%end
+%end
+
+%group ClockTones
+%hook TKTonePickerViewController
 - (void)viewWillAppear:(BOOL)arg1 {
 	[self setShowsToneStore:NO];
 	%orig;
 }
 %end
-
 %end
-
 
 %ctor {
 
-	HBPreferences *prefs = [[HBPreferences alloc] initWithIdentifier:@"com.zhenguwu.aurorepreferences"];
-	[prefs registerObject:&prefsLink default:nil forKey:@"link"];
-	[prefs registerDouble:&prefsVolumeTime default:180 forKey:@"volumeTime"];
-	[prefs registerDouble:&prefsSnoozeTime default:300 forKey:@"snoozeTime"];
-	[prefs registerFloat:&prefsSnoozeVolume default:0 forKey:@"snoozeVolume"];
-	[prefs registerInteger:&prefsSnoozeCount default:1 forKey:@"snoozeCount"];
-	[prefs registerInteger:&prefsBlurStyle default:2 forKey:@"blurStyle"];
-
-	/*NSString *bundlePath = [[NSBundle mainBundle].bundlePath stringByAppendingPathComponent:@"Frameworks/MusicApplication.framework"];
-	[[NSBundle bundleWithPath:bundlePath] load];
-	RLog(bundlePath);
-	RLog(@"cls: %@", objc_getClass("MusicApplication.PlaylistDetailSongsViewController"));*/
-
 	NSString *process = [[NSProcessInfo processInfo] processName];
-	RLog(process);
 	if ([process isEqualToString:@"SpringBoard"]) {
 		%init(SpringBoard);
 	} else if ([process isEqualToString:@"MobileTimer"]) {
 		%init(Clock);
-		if (YES) {
+		NSDictionary *clockPrefs = [[NSDictionary alloc] initWithContentsOfFile:clockPrefsPath];
+
+		if ([clockPrefs objectForKey:@"insetTables"] ? [[clockPrefs objectForKey:@"insetTables"] boolValue] : YES) {
+			globInset = YES;
 			%init(ClockInset);
+		} else {
+			globInset = NO;
 		}
-		if (YES) {
-			%init(ClockSound);
+		if ([clockPrefs objectForKey:@"hideSongs"] ? [[clockPrefs objectForKey:@"hideSongs"] boolValue] : YES) {
+			%init(ClockSongs);
+		}
+		if ([clockPrefs objectForKey:@"hideTones"] ? [[clockPrefs objectForKey:@"hideTones"] boolValue] : YES) {
+			%init(ClockTones);
 		}
 	} else if ([process isEqualToString:@"Spotify"]) {
 		%init(Spotify);
 	} else if ([process isEqualToString:@"Music"]) {
-		%init(AppleMusic, 
+		%init(AppleMusic,
 			MusicSceneDelegate = objc_getClass("MusicMainWindowSceneDelegate"), 
 			MusicPlayControls = objc_getClass("MusicApplication.PlayIntentControlsReusableView")
 		); 

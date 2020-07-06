@@ -10,7 +10,6 @@ TWEAK_NAME = Aurore
 
 Aurore_FILES = $(wildcard *.xm) $(wildcard */*.xm)
 Aurore_CFLAGS = -fobjc-arc
-Aurore_EXTRA_FRAMEWORKS += Cephei
 Aurore_PRIVATE_FRAMEWORKS = MediaRemote, OnBoardingKit
 
 include $(THEOS_MAKE_PATH)/tweak.mk

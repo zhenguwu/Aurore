@@ -1,14 +1,14 @@
-NSString *prefsLink;
-double prefsVolumeTime;
-double prefsSnoozeTime;
-CGFloat prefsSnoozeVolume;
-NSInteger prefsSnoozeCount;
-NSInteger prefsBlurStyle;
+static NSString *globName = @"";
+static BOOL globInset;
 
 @class auroreModal;
 @class auroreAlarmManager;
 @class auroreView;
 @class CSEnhancedModalButton;
+@class MTAlarm;
+@class auroreMusicTableViewController;
+@class auroreSnoozeTableViewController;
+@class auroreOthersTableViewController;
 
 @interface UIApplication (Aurore)
 - (BOOL)launchApplicationWithIdentifier: (NSString *)identifier suspended: (BOOL)suspended;
@@ -71,7 +71,7 @@ NSInteger prefsBlurStyle;
 @interface CSQuickActionsButton : UIView
 @end
 
-@interface CSQuickActionsView
+@interface CSQuickActionsView : UIView
 - (CSQuickActionsButton *)cameraButton;
 @end
 
@@ -120,8 +120,6 @@ NSInteger prefsBlurStyle;
 - (SBDefaultAuthenticationPolicy *)_policy;
 @end
 
-@class MTAlarmManager;
-
 @interface SBLockScreenManager
 @property (nonatomic,assign) BOOL showAuroreModal;
 @property (nonatomic,assign) BOOL auroreIsUpdate;
@@ -131,9 +129,12 @@ NSInteger prefsBlurStyle;
 @property (nonatomic,retain) NSString *auroreOldVersion;
 @property (nonatomic,retain) auroreAlarmManager *alarmManager;
 @property (nonatomic,retain) NSDictionary *auroreSettings;
+@property (nonatomic,retain) NSDictionary *auroreSettings2;
+@property (nonatomic,retain) MTAlarm *backupAlarm;
 @property (nonatomic,retain) auroreModal *auroreModal;
 @property (nonatomic,retain) auroreView *auroreView;
 @property (nonatomic,assign) BOOL auroreDismissed;
+@property (nonatomic,assign) BOOL auroreCompletelyDismissed;
 @property (nonatomic,retain) SBVolumeControl *auroreVolumeContr;
 @property (nonatomic,assign) float auroreVolume;
 @property (nonatomic,assign) int auroreSnoozeCount;
@@ -153,14 +154,16 @@ NSInteger prefsBlurStyle;
 - (void)auroreModalPurchase;
 - (void)auroreProcessNotif:(NSNotification *)notif;
 - (BOOL)auroreUnlock:(NSString *)key;
-- (void)auroreMain:(NSDictionary *)settings;
-- (void)auroreMusicBegan;
+- (void)auroreMain:(NSDictionary *)settings compatibility:(BOOL)compatibility;
+- (void)auroreMusicBegan:(BOOL)retry;
 - (void)auroreLock:(BOOL)arg1 device:(BOOL)arg2 playback:(BOOL)arg3 volume:(BOOL)arg4 cc:(BOOL)arg5;
 - (void)auroreVolumeSetup;
+- (void)auroreConnectBluetooth:(NSString *)device loop:(BOOL)loop;
 - (void)auroreVolumeLoop:(int)counter delay:(double)delay interval:(float)interval count:(int)count;
 - (void)aurorePlaybackStateChanged;
 - (void)auroreVolumeChanged;
 - (void)auroreOverlay;
+- (void)auroreClear;
 - (void)auroreDismiss;
 - (void)auroreSnooze:(CSEnhancedModalButton *)snoozeButton;
 - (void)auroreSnoozeComplete;
@@ -187,6 +190,18 @@ NSInteger prefsBlurStyle;
 @property (nonatomic,retain) SBControlCenterWindow *windowTemp;
 + (id)sharedInstance;
 - (void)setWindow:(SBControlCenterWindow *)arg1;
+@end
+
+@interface BluetoothDevice
+- (NSString *)name;
+- (BOOL)connected;
+- (void)disconnect;
+- (void)connect;
+@end
+
+@interface BluetoothManager
++ (id)sharedInstance;
+- (NSArray *)pairedDevices;
 @end
 
 
@@ -255,7 +270,8 @@ NSInteger prefsBlurStyle;
 @end
 
 @interface MusicPlayControls
-- (id)accessibilityShuffleButton;
+- (UIButton *)accessibilityPlayButton;
+- (UIButton *)accessibilityShuffleButton;
 @end
 
 
@@ -263,9 +279,17 @@ NSInteger prefsBlurStyle;
 
 @class MTAlarm;
 @class MTMutableAlarm;
-/*
-@interface MTAStopwatchTableView : UITableView
-@end*/
+
+@interface MTAlarmManager
+- (id)addAlarm:(MTAlarm *)arg1;
+- (id)removeAlarm:(MTAlarm *)arg1;
+@end
+
+@interface SBScheduledAlarmObserver {
+    MTAlarmManager *_alarmManager;
+}
++ (id)sharedInstance;
+@end
 
 @interface MTAlarmDataSource
 - (id)removeAlarm:(MTMutableAlarm *)alarm;
@@ -275,11 +299,11 @@ NSInteger prefsBlurStyle;
 - (UITableView *)settingsTable;
 @end
 
-@interface MTAAlarmEditViewController : UIViewController
+@interface MTAAlarmEditViewController : UIViewController <UITableViewDataSource, UITableViewDelegate, auroreMusicDelegate, auroreSnoozeDelegate, auroreOthersDelegate>
 @property (nonatomic,retain) auroreAlarmManager *alarmManager;
 @property (nonatomic,assign) BOOL auroreEnabled;
-@property (nonatomic,assign) BOOL auroreEnabledOriginal;
 @property (nonatomic,retain) NSMutableDictionary *auroreSettings;
+@property (nonatomic,assign) BOOL auroreSettingsChanged;
 
 - (id)initWithAlarm:(MTAlarm *)arg1 isNewAlarm:(BOOL)arg2;
 - (MTMutableAlarm *)editedAlarm;
@@ -290,12 +314,37 @@ NSInteger prefsBlurStyle;
 - (void)_doneButtonClicked:(id)arg1;
 
 - (void)auroreSwitchChanged:(UISwitch *)sender;
+- (void)reloadTableCellAtRow:(NSInteger)row;
+- (void)auroreMusicTableControllerUpdateLink:(NSString *)link shuffle:(NSNumber *)shuffle volumeMax:(NSNumber *)volumeMax volumeTime:(NSNumber *)volumeTime bluetooth:(NSString *)bluetooth airplay:(NSString *)airplay;
+- (NSString *)auroreUpdateLinkContext:(BOOL)correct link:(NSString *)link reload:(BOOL)reload;
+- (void)auroreSnoozeTableControllerUpdateSnoozeEnabled:(NSNumber *)snoozeEnabled snoozeCount:(NSNumber *)snoozeCount snoozeTime:(NSNumber *)snoozeTime snoozeVolume:(NSNumber *)snoozeVolume snoozeVolumeTime:(NSNumber *)snoozeVolumeTime;
+- (void)auroreOthersTableControllerUpdateShowWeather:(NSNumber *)showWeather dismissAction:(NSNumber *)dismissAction shortcutFire:(NSString *)shortcutFire shortcutSnooze:(NSString *)shortcutSnooze shortcutDismiss:(NSString *)shortcutDismiss;
 @end
 
 /*
 - (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section;
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section;
 */
+
+@interface MTASleepDetailViewController : UITableViewController <auroreMusicDelegate, auroreSnoozeDelegate, auroreOthersDelegate>
+@property (nonatomic,retain) auroreAlarmManager *alarmManager2;
+@property (nonatomic,assign) BOOL auroreEnabled;
+@property (nonatomic,retain) NSMutableDictionary *auroreSettings;
+
+- (id)initWithAlarmManager:(id)arg1 dataSource:(id)arg2;
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
+- (void)auroreSaveSettings;
+- (void)auroreSwitchChanged:(UISwitch *)sender;
+- (void)reloadTableCellAtRow:(NSInteger)row;
+- (void)auroreMusicTableControllerUpdateLink:(NSString *)link shuffle:(NSNumber *)shuffle volumeMax:(NSNumber *)volumeMax volumeTime:(NSNumber *)volumeTime bluetooth:(NSString *)bluetooth airplay:(NSString *)airplay;
+- (NSString *)auroreUpdateLinkContext:(BOOL)correct link:(NSString *)link reload:(BOOL)reload;
+- (void)auroreSnoozeTableControllerUpdateSnoozeEnabled:(NSNumber *)snoozeEnabled snoozeCount:(NSNumber *)snoozeCount snoozeTime:(NSNumber *)snoozeTime snoozeVolume:(NSNumber *)snoozeVolume snoozeVolumeTime:(NSNumber *)snoozeVolumeTime;
+- (void)auroreOthersTableControllerUpdateShowWeather:(NSNumber *)showWeather dismissAction:(NSNumber *)dismissAction shortcutFire:(NSString *)shortcutFire shortcutSnooze:(NSString *)shortcutSnooze shortcutDismiss:(NSString *)shortcutDismiss;
+@end
+
+@interface MTUISwitchTableViewCell : UIView
+@end
 
 @interface TKTonePickerViewController : UIViewController
 - (void)setShowsToneStore:(BOOL)arg1;

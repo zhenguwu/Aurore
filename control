@@ -1,7 +1,7 @@
 Package: com.zhenguwu.aurore
 Name: Aurore
-Depends: mobilesubstrate, ws.hbang.common (>= 1.15.1)
-Version: 0.0.1
+Depends: mobilesubstrate
+Version: 1.0
 Architecture: iphoneos-arm
 Description: Revamped iOS Alarms
 Maintainer: Michael Wu
