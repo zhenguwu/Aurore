@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+
+        <dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Tables</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.auroreclockpreferences</string>
+			<key>default</key>
+			<true/>
+			<key>label</key>
+			<string>Inset Tables</string>
+			<key>key</key>
+			<string>insetTables</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Alarms</string>
+			<key>footerText</key>
+			<string>Removes the need to click the edit button to edit an alarm</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.auroreclockpreferences</string>
+			<key>default</key>
+			<true/>
+			<key>label</key>
+			<string>Tap To Edit</string>
+			<key>key</key>
+			<string>easyEdit</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Songs and Tone Store</string>
+			<key>footerText</key>
+			<string>Hides the useless songs and tone stores in the sound settings</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.auroreclockpreferences</string>
+			<key>label</key>
+			<string>Hide Songs</string>
+			<key>default</key>
+			<true/>
+			<key>key</key>
+			<string>hideSongs</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.auroreclockpreferences</string>
+			<key>label</key>
+			<string>Hide Tone Store</string>
+			<key>default</key>
+			<true/>
+			<key>key</key>
+			<string>hideTones</string>
+		</dict>
+        
+
+    </array>
+</dict>
+</plist>

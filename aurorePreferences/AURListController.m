@@ -1,4 +1,5 @@
 #import "AURListController.h"
+#import "../tools/constants.h"
 
 @implementation AURListController
 - (NSString *)topTitle {
@@ -27,7 +28,8 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-	((UITableView *)[self table]).keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
+	((UITableView *)[self table]).keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
+	[[UISwitch appearanceWhenContainedInInstancesOfClasses:@[[self class]]] setOnTintColor:[UIColor colorWithRed: 0.63 green: 0.62 blue: 0.57 alpha: 1.00]];
 }
 
 -(void)_returnKeyPressed:(id)arg1 {

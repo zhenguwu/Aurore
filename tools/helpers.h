@@ -39,7 +39,6 @@ static BOOL reset() {
     return [[NSFileManager defaultManager] removeItemAtPath:@"/var/mobile/Library/Preferences/Aurore" error:nil];
 }
 
-/*
 static void killApp(NSString *appName) {
     pid_t pid;
     int status;
@@ -47,4 +46,3 @@ static void killApp(NSString *appName) {
     posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
     waitpid(pid, &status, WEXITED);
 }
-*/

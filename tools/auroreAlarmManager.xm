@@ -1,27 +1,21 @@
 #import "auroreAlarmManager.h"
 #import "../tools/constants.h"
 
+#define alarmsPath @"/var/mobile/Library/Preferences/Aurore/alarms.plist"
+#define defaultsPath @"/var/mobile/Library/Preferences/Aurore/defaults.plist"
+
 @implementation auroreAlarmManager
 - (id)init {
     self = [super init];
     MTAlarmStorage *alarmStorage = [[%c(MTAlarmStorage) alloc] init];
     [alarmStorage loadAlarms];
     self.alarms = [alarmStorage allAlarms];
+    self.sleepAlarm = [alarmStorage sleepAlarm];
     return self;
 }
 
-- (NSString *)alarmsPath {
-	return @"/var/mobile/Library/Preferences/Aurore/alarms.plist";
-}
-- (NSString *)defaultsPath {
-	return @"/var/mobile/Library/Preferences/Aurore/defaults.plist";
-}
-- (NSString *)versionPath {
-    return @"/var/mobile/Library/Preferences/Aurore/version.txt";
-}
-
 - (NSMutableDictionary *)getAllAlarms {
-    return [[NSMutableDictionary alloc] initWithContentsOfFile:[self alarmsPath]];
+    return [[NSMutableDictionary alloc] initWithContentsOfFile:alarmsPath];
 }
 - (BOOL)setAlarm:(NSString *)alarmID withData:(NSMutableDictionary *)data {
     NSMutableDictionary *currentAlarms = [self getAllAlarms];
@@ -30,7 +24,7 @@
     } else {
         [currentAlarms removeObjectForKey:alarmID];
     }
-    [currentAlarms writeToFile:[self alarmsPath] atomically:YES];
+    [currentAlarms writeToFile:alarmsPath atomically:YES];
     return YES;
 }
 
@@ -38,7 +32,13 @@
     return (NSMutableDictionary *)[self getAllAlarms][alarmID];
 }
 - (NSMutableDictionary *)getDefaults {
-    return [[NSMutableDictionary alloc] initWithContentsOfFile:[self defaultsPath]];
+    return [[NSMutableDictionary alloc] initWithContentsOfFile:defaultsPath];
+}
+- (NSMutableDictionary *)getSleepAlarm {
+    return [self getAlarm:[self.sleepAlarm alarmIDStr]];
+}
+- (void)setSleepAlarmWithData:(NSMutableDictionary *)data {
+    [self setAlarm:[self.sleepAlarm alarmIDStr] withData:data];
 }
 
 - (void)syncAlarmsIfNeeded {
@@ -62,7 +62,7 @@
                 [currentAlarms removeObjectForKey:alarmID];
             }
         }
-        [currentAlarms writeToFile:[self alarmsPath] atomically:YES];
+        [currentAlarms writeToFile:alarmsPath atomically:YES];
     }
 }
 
@@ -73,20 +73,46 @@
         @"linkContext" : @"",
         @"shuffle" : @YES,
         @"volumeMax" : @100,
-        @"volumeTime" : @180,
+        @"volumeTime" : @3,
         @"bluetooth" : @"",
         @"airplay" : @"",
         @"snoozeEnabled" : @YES,
         @"snoozeCount" : @1,
-        @"snoozeTime" : @300,
+        @"snoozeTime" : @5,
         @"snoozeVolume" : @0,
-        @"snoozeVolumeTime" : @120,
+        @"snoozeVolumeTime" : @2,
         @"showWeather" : @YES,
         @"dismissAction" : @0,
-        @"shortcutFire" : @"",
-        @"shortcutSnooze" : @"",
-        @"shortcutAlarm" : @"",
+        @"shortcut" : @""
 	};
+    NSDictionary *defaults2 = @{
+        @"interfaceStyle" : @2,
+        @"blurStyle" : @3,
+        @"buttonStyle" : @1,
+        @"swapButtons" : @NO,
+        @"hideDismiss" : @NO,
+        @"bottomOffset" : @50,
+        @"spacing" : @10,
+        @"dismissWidth" : @130,
+        @"dismissHeight" : @50,
+        @"dismissCornerRadius" : @24,
+        @"snoozeWidth" : @130,
+        @"snoozeHeight" : @50,
+        @"snoozeCornerRadius" : @24,
+        @"lockPlayback" : @YES,
+        @"lockVolume" : @YES,
+        @"lockLS" : @YES,
+        @"lockCC" : @NO,
+        @"unlockLSCC" : @YES,
+        @"disableCamera" : @YES,
+        @"hideButtons" : @NO,
+        @"name" : @"",
+        @"pauseMusic" : @YES,
+        @"setVolume" : @0,
+        @"btForceReconnect" : @NO,
+        @"btRetryTime" : @5,
+        
+    };
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 	
 	if (isUpdate) {
@@ -94,21 +120,22 @@
 	} else {
 		NSString *dir = @"/var/mobile/Library/Preferences/Aurore";
 		[fileManager createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:nil];
-		[fileManager createFileAtPath:[self defaultsPath] contents:nil attributes:nil];	
-		[defaults writeToFile:[self defaultsPath] atomically:YES];
+		[fileManager createFileAtPath:defaultsPath contents:nil attributes:nil];	
+		[defaults writeToFile:defaultsPath atomically:YES];
 		
-		[fileManager createFileAtPath:[self alarmsPath] contents:nil attributes:nil];
+		[fileManager createFileAtPath:alarmsPath contents:nil attributes:nil];
 		NSMutableDictionary *auroreAlarms = [[NSMutableDictionary alloc] init];
 		for (MTAlarm *alarm in self.alarms) {
 			auroreAlarms[[alarm alarmIDStr]] = defaults;
 		}
-		[auroreAlarms writeToFile:[self alarmsPath] atomically:YES];
-		[fileManager createFileAtPath:[self versionPath] contents:nil attributes:nil];
+		[auroreAlarms writeToFile:alarmsPath atomically:YES];
+		[fileManager createFileAtPath:versionPath contents:nil attributes:nil];
 		[fileManager createFileAtPath:@"/var/mobile/Library/Preferences/Aurore/README.txt" contents:nil attributes:nil];
 		[@"These files are essential to Aurore. Tampering with them may break the functionality of the tweak." writeToFile:@"/var/mobile/Library/Preferences/Aurore/README.txt" atomically:YES encoding:NSUTF8StringEncoding error:nil];
-	}
-	[auroreVersion writeToFile:[self versionPath] atomically:YES encoding:NSUTF8StringEncoding error:nil];
-	return 2;
+        [defaults2 writeToFile:prefsPath atomically:YES];
+    }
+	[auroreVersion writeToFile:versionPath atomically:YES encoding:NSUTF8StringEncoding error:nil];
+	return 0;
 }
 
 

@@ -13,21 +13,19 @@
     }
     return NO;
 }
-- (UIButton *)setupDismissButton:(CGRect)frame alignment:(NSInteger)alignment {
+- (UIButton *)setupDismissButton:(CGRect)frame radius:(float)radius {
     self.auroreDismissButton = [[%c(CSEnhancedModalButton) alloc] initWithFrame:frame];
-    self.auroreDismissButton.center = CGPointMake(CGRectGetMidX(self.bounds), self.auroreDismissButton.center.y);	
 	[self.auroreDismissButton setTitle:@"Dismiss" forState:UIControlStateNormal];
-    [self.auroreDismissButton _setContinuousCornerRadius:24];
+    [self.auroreDismissButton _setContinuousCornerRadius:radius];
     self.auroreDismissButton.userInteractionEnabled = YES;
     [self addSubview:self.auroreDismissButton];
 
     return self.auroreDismissButton;
 }
-- (UIButton *)setupSnoozeButton:(CGRect)frame alignment:(NSInteger)alignment {
+- (UIButton *)setupSnoozeButton:(CGRect)frame radius:(float)radius {
     self.auroreSnoozeButton = [[%c(CSEnhancedModalButton) alloc] initWithFrame:frame];
-    self.auroreSnoozeButton.center = CGPointMake(CGRectGetMidX(self.bounds), self.auroreSnoozeButton.center.y);	
 	[self.auroreSnoozeButton setTitle:@"Snooze" forState:UIControlStateNormal];
-    [self.auroreSnoozeButton _setContinuousCornerRadius:24];
+    [self.auroreSnoozeButton _setContinuousCornerRadius:radius];
     self.auroreSnoozeButton.userInteractionEnabled = YES;
     [self addSubview:self.auroreSnoozeButton];
 

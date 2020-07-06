@@ -9,7 +9,6 @@ BUNDLE_NAME = AurorePrefs
 AurorePrefs_FILES = $(wildcard *.m)
 AurorePrefs_INSTALL_PATH = /Library/PreferenceBundles
 AurorePrefs_FRAMEWORKS = UIKit
-Aurore_EXTRA_FRAMEWORKS += Cephei CepheiPrefs
 AurorePrefs_PRIVATE_FRAMEWORKS = Preferences
 AurorePrefs_CFLAGS = -fobjc-arc
 

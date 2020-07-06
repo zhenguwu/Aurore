@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Style</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>validTitles</key>
+			<array>
+				<string>Minimal</string>
+				<string>Full</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>1</integer>
+				<integer>2</integer>
+			</array>
+			<key>key</key>
+			<string>interfaceStyle</string>
+		</dict>
+        <dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Blur</string>
+		</dict>
+        <dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>validTitles</key>
+			<array>
+				<string>Dark Blur</string>
+				<string>No Blur</string>
+				<string>Light Blur</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>1</integer>
+				<integer>2</integer>
+				<integer>3</integer>
+			</array>
+			<key>key</key>
+			<string>blurStyle</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Buttons</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>validTitles</key>
+			<array>
+				<string>Stacked</string>
+				<string>Side by Side</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>1</integer>
+				<integer>2</integer>
+			</array>
+			<key>key</key>
+			<string>buttonStyle</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Swap Buttons</string>
+			<key>key</key>
+			<string>swapButtons</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Hide Dismiss When Snoozed</string>
+			<key>key</key>
+			<string>hideDismiss</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Positioning</string>
+			<key>footerText</key>
+			<string>Values are measured in pixels and from the appropriate edge of the buttons</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Bottom Offset</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>bottomOffset</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Spacing</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>spacing</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Button Sizing</string>
+			<key>footerText</key>
+			<string>Values are measured in pixels</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Dismiss Width</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>dismissWidth</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Dismiss Height</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>dismissHeight</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Dismiss Corner Radius</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>dismissCornerRadius</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Snooze Width</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeWidth</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Snooze Height</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeHeight</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Snooze Corner Radius</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeCornerRadius</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Persistance</string>
+			<key>footerText</key>
+			<string>These apply only while the alarm is not dismissed. Playback lock prevents pausing of the music. Volume lock prevents manual volume change. CC lock prevents opening of the control center. LS lock prevents leaving the lockscreen.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Playback Lock</string>
+			<key>key</key>
+			<string>lockPlayback</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Volume Lock</string>
+			<key>key</key>
+			<string>lockVolume</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>CC Lock</string>
+			<key>key</key>
+			<string>lockCC</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>LS Lock</string>
+			<key>key</key>
+			<string>lockLS</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Unlock LS+CC When Snoozed</string>
+			<key>key</key>
+			<string>unlockLSCC</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Quick Action Buttons</string>
+			<key>footerText</key>
+			<string>Disable camera quick action or completely hide both during alarm</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Disable Camera Button</string>
+			<key>key</key>
+			<string>disableCamera</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Hide Buttons</string>
+			<key>key</key>
+			<string>hideButtons</string>
+		</dict>
+
+    </array>
+</dict>
+</plist>

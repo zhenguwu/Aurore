@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+
+        <dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Default Alarm Options</string>
+		</dict>
+        <dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Music Link</string>
+			<key>isURL</key>
+			<true/>
+			<key>key</key>
+			<string>link</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Link Preview</string>
+			<key>key</key>
+			<string>linkContext</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Shuffle</string>
+			<key>key</key>
+			<string>shuffle</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Max Volume</string>
+			<key>isNumeric</key>
+			<true/>
+			<key>key</key>
+			<string>volumeMax</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Fade In Time</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>volumeTime</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Bluetooth</string>
+			<key>key</key>
+			<string>bluetooth</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>AirPlay</string>
+			<key>key</key>
+			<string>airplay</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Snooze Enabled</string>
+			<key>key</key>
+			<string>snoozeEnabled</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Snooze Count</string>
+			<key>isNumeric</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeCount</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Snooze Time</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeTime</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Snooze Volume</string>
+			<key>isNumeric</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeVolume</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Fade In Time After Snooze</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeVolumeTime</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Show Weather</string>
+			<key>key</key>
+			<string>showWeather</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Run Shortcut</string>
+			<key>key</key>
+			<string>shortcut</string>
+		</dict>
+
+    </array>
+</dict>
+</plist>

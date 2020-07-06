@@ -21,7 +21,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 	((UITableView *)[self table]).keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Apply" style:UIBarButtonItemStylePlain target:self action:@selector(applySettings)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Test" style:UIBarButtonItemStylePlain target:self action:@selector(auroreTest)];
+	//self.buttonTextColor = [UIColor colorWithRed: 0.18 green: 0.25 blue: 0.30 alpha: 1.00];
+
+	[[UISwitch appearanceWhenContainedInInstancesOfClasses:@[[self class]]] setOnTintColor:[UIColor colorWithRed: 0.63 green: 0.62 blue: 0.57 alpha: 1.00]];
 }
 
 -(void)_returnKeyPressed:(id)arg1 {
@@ -40,5 +43,6 @@
 
     //[self.navigationController.navigationController.navigationBar setTitleTextAttributes:@{NSForegroundColorAttributeName : [UIColor blackColor]}];
 }
+
 @end
 

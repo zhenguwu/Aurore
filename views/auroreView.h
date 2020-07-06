@@ -12,8 +12,8 @@
 @property (nonatomic,retain) CSEnhancedModalButton *auroreSnoozeButton;
 - (id)initWithFrame:(CGRect)rect;
 - (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event;
-- (CSEnhancedModalButton *)setupDismissButton:(CGRect)frame alignment:(NSInteger)alignment;
-- (CSEnhancedModalButton *)setupSnoozeButton:(CGRect)frame alignment:(NSInteger)alignment;
+- (CSEnhancedModalButton *)setupDismissButton:(CGRect)frame radius:(float)radius;
+- (CSEnhancedModalButton *)setupSnoozeButton:(CGRect)frame radius:(float)radius;
 - (void)showCameraView;
 @end
 
