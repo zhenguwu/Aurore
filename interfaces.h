@@ -1,5 +1,6 @@
 static NSString *globName = @"";
 static BOOL globInset;
+static NSString *globShortcutDismiss;
 
 @class auroreModal;
 @class auroreAlarmManager;
@@ -11,7 +12,7 @@ static BOOL globInset;
 @class auroreOthersTableViewController;
 
 @interface UIApplication (Aurore)
-- (BOOL)launchApplicationWithIdentifier: (NSString *)identifier suspended: (BOOL)suspended;
+- (BOOL)launchApplicationWithIdentifier:(NSString *)identifier suspended:(BOOL)suspended;
 @end
 
 @interface UIColor (Aurore)
@@ -44,8 +45,8 @@ static BOOL globInset;
 @end
 
 @interface CSDNDBedtimeGreetingViewController : UIViewController
--(id)_greetingString;
--(void)handleTouchEventForView:(id)arg1;
+- (id)_greetingString;
+- (void)handleTouchEventForView:(id)arg1;
 @end
 
 @interface NCNotificationListView : UIScrollView
@@ -68,6 +69,16 @@ static BOOL globInset;
 @interface SBFPagedScrollView : UIScrollView
 @end
 
+@interface SBDashBoardIdleTimerProvider
+@property (nonatomic, assign) BOOL auroreEnabled;
+- (BOOL)isIdleTimerEnabled;
+@end
+
+@interface SBDashBoardIdleTimerController {
+    SBDashBoardIdleTimerProvider *_dashBoardIdleTimerProvider;
+}
+@end
+
 @interface CSQuickActionsButton : UIView
 @end
 
@@ -81,12 +92,25 @@ static BOOL globInset;
 @end
 
 @interface CSCoverSheetViewController : UIViewController
+@property (nonatomic,assign) BOOL auroreCanPutBackground;
 - (CSMainPageContentViewController *)mainPageContentViewController;
+- (id)initWithPageViewControllers:(id)arg1 mainPageContentViewController:(id)arg2 context:(id)arg3;
 - (BOOL)isAuthenticated;
 - (void)_addBedtimeGreetingBackgroundView;
 - (void)_removeBedtimeGreetingBackgroundViewAnimated:(BOOL)arg1;
+- (SBDashBoardIdleTimerController *)idleTimerController;
 
 - (void)auroreDismissModal;
+@end
+
+@interface MPAVOutputDeviceRoute
+- (NSString *)routeName;
+@end
+
+@interface MPAVRoutingController
+- (BOOL)pickSpeakerRoute;
+- (NSArray *)availableRoutes;
+- (BOOL)pickRoute:(MPAVOutputDeviceRoute *)route;
 @end
 
 @interface SBVolumeControl
@@ -96,6 +120,7 @@ static BOOL globInset;
 
 @interface SBMediaController {
     SBVolumeControl *_volumeControl;
+    MPAVRoutingController *_routingController;
 }
 + (id)sharedInstance;
 @end
@@ -131,16 +156,21 @@ static BOOL globInset;
 @property (nonatomic,retain) NSDictionary *auroreSettings;
 @property (nonatomic,retain) NSDictionary *auroreSettings2;
 @property (nonatomic,retain) MTAlarm *backupAlarm;
+@property (nonatomic,assign) BOOL isStation;
+@property (nonatomic,retain) NSString *auroreCast;
 @property (nonatomic,retain) auroreModal *auroreModal;
 @property (nonatomic,retain) auroreView *auroreView;
+@property (nonatomic,retain) CSDNDBedtimeController *bedtimeContr;
+@property (nonatomic,retain) SBDashBoardIdleTimerProvider *idleTimer;
 @property (nonatomic,assign) BOOL auroreDismissed;
 @property (nonatomic,assign) BOOL auroreCompletelyDismissed;
 @property (nonatomic,retain) SBVolumeControl *auroreVolumeContr;
 @property (nonatomic,assign) float auroreVolume;
 @property (nonatomic,assign) int auroreSnoozeCount;
+@property (nonatomic,assign) int auroreSnoozeTime;
 + (id)sharedInstance;
 - (id)init;
-- (void)auroreLog:(NSNotification *)notif;
+//- (void)auroreLog:(NSNotification *)notif;
 - (SBFUserAuthenticationController *)_userAuthController;
 - (CSCoverSheetViewController *)coverSheetViewController;
 - (BOOL)_attemptUnlockWithPasscode:(id)arg1 finishUIUnlock:(BOOL)arg2;
@@ -153,11 +183,12 @@ static BOOL globInset;
 - (void)auroreModalUpdate;
 - (void)auroreModalPurchase;
 - (void)auroreProcessNotif:(NSNotification *)notif;
+- (void)auroreShortcutFire:(BOOL)arg1;
 - (BOOL)auroreUnlock:(NSString *)key;
 - (void)auroreMain:(NSDictionary *)settings compatibility:(BOOL)compatibility;
+- (void)auroreVolumeSetup;
 - (void)auroreMusicBegan:(BOOL)retry;
 - (void)auroreLock:(BOOL)arg1 device:(BOOL)arg2 playback:(BOOL)arg3 volume:(BOOL)arg4 cc:(BOOL)arg5;
-- (void)auroreVolumeSetup;
 - (void)auroreConnectBluetooth:(NSString *)device loop:(BOOL)loop;
 - (void)auroreVolumeLoop:(int)counter delay:(double)delay interval:(float)interval count:(int)count;
 - (void)aurorePlaybackStateChanged;
@@ -166,19 +197,20 @@ static BOOL globInset;
 - (void)auroreClear;
 - (void)auroreDismiss;
 - (void)auroreSnooze:(CSEnhancedModalButton *)snoozeButton;
+- (void)auroreUpdateSnoozeTime:(NSTimer *)timer;
 - (void)auroreSnoozeComplete;
+- (void)auroreShortcutDismiss;
 @end
 
-/*
-@interface SpringBoard
-//- (void) _simulateLockButtonPress;
-@end*/
 
-@interface SBBacklightController
-+ (id)sharedInstance;
-- (void)setBacklightFactor:(float)arg1 source:(long long)arg2;
-- (void)_startFadeOutAnimationFromLockSource:(int)arg1;
-- (void)_animateBacklightToFactor:(float)arg1 duration:(double)arg2 source:(long long)arg3 silently:(BOOL)arg4 completion:(/*^block*/id)arg5 ;
+@interface SBUserAgent
+- (BOOL)isScreenOn;
+@end
+
+@interface SpringBoard
+- (void)_simulateLockButtonPress;
+- (void)_simulateHomeButtonPress;
+- (SBUserAgent *)pluginUserAgent;
 @end
 
 @interface SBControlCenterWindow
@@ -231,6 +263,17 @@ static BOOL globInset;
 - (void)navigateToURI:(NSURL *)link sourceApplication:(id)arg2 annotation:(id)arg3 options:(NSInteger)arg4 interactionID:(id)arg5 completionHandler:(id)arg6;
 @end
 
+@interface SPTGaiaConnectDevice
+@property (nonatomic,retain) NSString *name;
+@end
+
+@interface SPTGaiaConnectManagerImplementation
+- (NSArray *)devices;
+- (void)discoverDevices;
+- (void)activateDevice:(SPTGaiaConnectDevice *)arg1 responseBlock:(id)arg2;
+- (id)initWithResolver:(id)arg1 availableDevicesManager:(id)arg2 stateObservingManager:(id)arg3;
+- (void)connectDevice:(NSNotification *)notif;
+@end
 
 // Apple Music Headers
 
@@ -319,6 +362,8 @@ static BOOL globInset;
 - (NSString *)auroreUpdateLinkContext:(BOOL)correct link:(NSString *)link reload:(BOOL)reload;
 - (void)auroreSnoozeTableControllerUpdateSnoozeEnabled:(NSNumber *)snoozeEnabled snoozeCount:(NSNumber *)snoozeCount snoozeTime:(NSNumber *)snoozeTime snoozeVolume:(NSNumber *)snoozeVolume snoozeVolumeTime:(NSNumber *)snoozeVolumeTime;
 - (void)auroreOthersTableControllerUpdateShowWeather:(NSNumber *)showWeather dismissAction:(NSNumber *)dismissAction shortcutFire:(NSString *)shortcutFire shortcutSnooze:(NSString *)shortcutSnooze shortcutDismiss:(NSString *)shortcutDismiss;
+- (void)auroreSetAsDefault;
+- (void)auroreResetToDefault;
 @end
 
 /*
@@ -341,9 +386,17 @@ static BOOL globInset;
 - (NSString *)auroreUpdateLinkContext:(BOOL)correct link:(NSString *)link reload:(BOOL)reload;
 - (void)auroreSnoozeTableControllerUpdateSnoozeEnabled:(NSNumber *)snoozeEnabled snoozeCount:(NSNumber *)snoozeCount snoozeTime:(NSNumber *)snoozeTime snoozeVolume:(NSNumber *)snoozeVolume snoozeVolumeTime:(NSNumber *)snoozeVolumeTime;
 - (void)auroreOthersTableControllerUpdateShowWeather:(NSNumber *)showWeather dismissAction:(NSNumber *)dismissAction shortcutFire:(NSString *)shortcutFire shortcutSnooze:(NSString *)shortcutSnooze shortcutDismiss:(NSString *)shortcutDismiss;
+- (void)auroreSetAsDefault;
+- (void)auroreResetToDefault;
 @end
 
-@interface MTUISwitchTableViewCell : UIView
+@interface MTAAlarmTableViewCell : UITableViewCell
+@property (nonatomic,assign) BOOL isSleepAlarm;
+@end
+
+@interface MTAAlarmTableViewController
+- (void)showEditViewForRow:(long long)arg1;
+- (void)showSleepControlsView;
 @end
 
 @interface TKTonePickerViewController : UIViewController

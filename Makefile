@@ -1,4 +1,3 @@
-export ARCHS=arm64 arm64e
 export TARGET = iphone:clang:13.5:13.0
 
 INSTALL_TARGET_PROCESSES = SpringBoard
@@ -8,8 +7,14 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = Aurore
 
+ARCHS = arm64
+TARGET_CC=/opt/theos/toolchain/XcodeDefault1.xctoolchain/usr/bin/clang
+TARGET_CXX=/opt/theos/toolchain/XcodeDefault1.xctoolchain/usr/bin/clang++
+
 Aurore_FILES = $(wildcard *.xm) $(wildcard */*.xm)
-Aurore_CFLAGS = -fobjc-arc
+Aurore_CFLAGS = -fobjc-arc #-mllvm -enable-strcry -mllvm -enable-cffobf -mllvm -enable-bcfobf -mllvm -enable-indibran
+#tools/crypto.h_CFLAGS = -mllvm -enable-strcry -mllvm -enable-cffobf -mllvm -enable-bcfobf -mllvm -enable-indibran
+Aurore_LIBRARIES = MobileGestalt
 Aurore_PRIVATE_FRAMEWORKS = MediaRemote, OnBoardingKit
 
 include $(THEOS_MAKE_PATH)/tweak.mk
@@ -18,4 +23,4 @@ include $(THEOS_MAKE_PATH)/aggregate.mk
 
 
 #after-install::
-#	install.exec "killall -9 Music & killall -9 mobiletimerd & killall -9 MobileTimer";
+#	install.exec "killall -9 Music & killall -9 Spotify & killall -9 mobiletimerd";
