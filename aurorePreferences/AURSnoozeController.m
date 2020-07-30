@@ -1,18 +1,17 @@
-#import "AURClockController.h"
+#import "AURSnoozeController.h"
 #import "../tools/constants.h"
-#import "../tools/helpers.h"
 
-@implementation AURClockController
+@implementation AURSnoozeController
 - (NSString *)topTitle {
-    return @"Clock App";
+    return @"Snooze Button";
 }
 
 - (NSString *)plistName {
-	return @"Clock";
+	return @"Snooze";
 }
 
 - (id)readPreferenceValue:(PSSpecifier*)specifier {
-    NSDictionary *tweakSettings = [NSDictionary dictionaryWithContentsOfFile:clockPrefsPath];
+    NSDictionary *tweakSettings = [NSDictionary dictionaryWithContentsOfFile:prefsPath];
     if (!tweakSettings[[specifier properties][@"key"]]) {
         return [specifier properties][@"default"];
     }
@@ -22,10 +21,9 @@
 - (void)setPreferenceValue:(id)value specifier:(PSSpecifier*)specifier {
     if ([[NSFileManager defaultManager] fileExistsAtPath:drmPath]) {
         NSMutableDictionary *defaults = [NSMutableDictionary dictionary];
-        [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:clockPrefsPath]];
+        [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:prefsPath]];
         [defaults setObject:value forKey:[specifier properties][@"key"]];
-        [defaults writeToFile:clockPrefsPath atomically:YES];
-        killApp(@"MobileTimer");
+        [defaults writeToFile:prefsPath atomically:YES];
     }
 }
 

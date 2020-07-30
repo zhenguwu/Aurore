@@ -12,24 +12,20 @@
 
 - (NSArray *)specifiers {
 	if (!_specifiers) {
-		NSString* plistName = [self plistName];
-
-		if(plistName)
-		{
-			_specifiers = [self loadSpecifiersFromPlistName:plistName target:self];
-		}
+		_specifiers = [self loadSpecifiersFromPlistName:[self plistName] target:self];
 	}
-	NSString* title = [self topTitle];
-	if (title) {
-		[(UINavigationItem *)self.navigationItem setTitle:title];
-	}
+	[(UINavigationItem *)self.navigationItem setTitle:[self topTitle]];
 	return _specifiers;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-	((UITableView *)[self table]).keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
+	[self table].keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
 	[[UISwitch appearanceWhenContainedInInstancesOfClasses:@[[self class]]] setOnTintColor:[UIColor colorWithRed: 0.63 green: 0.62 blue: 0.57 alpha: 1.00]];
+}
+- (void)viewWillAppear:(BOOL)animated {
+	[super viewWillAppear:animated];
+	[UIApplication sharedApplication].keyWindow.tintColor = [UIColor colorWithRed:0.63 green:0.62 blue:0.57 alpha:1.00];
 }
 
 -(void)_returnKeyPressed:(id)arg1 {

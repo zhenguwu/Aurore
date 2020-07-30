@@ -1,5 +1,4 @@
 #import "AURListController.h"
-#import "../tools/crypto.h"
 
 @interface AURPasscodeController : AURListController
 - (void)savePasscode;

@@ -1,13 +1,13 @@
-#import "AURMiscellaneousController.h"
+#import "AURDismissController.h"
 #import "../tools/constants.h"
 
-@implementation AURMiscellaneousController
+@implementation AURDismissController
 - (NSString *)topTitle {
-    return @"Miscellaneous";
+    return @"Dismiss Button";
 }
 
 - (NSString *)plistName {
-	return @"Miscellaneous";
+	return @"Dismiss";
 }
 
 - (id)readPreferenceValue:(PSSpecifier*)specifier {
@@ -27,5 +27,12 @@
     }
 }
 
+-(void)reloadSpecifiers {
+    [super reloadSpecifiers];
+    NSDictionary *preferences = [NSDictionary dictionaryWithContentsOfFile:prefsPath];
+    if (![preferences[@"dismissShouldColor"] boolValue]) {
+        [self removeContiguousSpecifiers:@[self.savedSpecifiers[@"color"], self.savedSpecifiers[@"alpha"]] animated:NO];
+    }
+}
 
 @end

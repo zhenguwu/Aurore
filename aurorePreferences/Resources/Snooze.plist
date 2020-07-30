@@ -1,0 +1,122 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+        <dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Button Color</string>
+		</dict>
+        <dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Use Custom Color</string>
+            <key>id</key>
+            <string>colorSwitch</string>
+			<key>key</key>
+			<string>snoozeShouldColor</string>
+		</dict>
+        <dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>cellClass</key>
+			<string>HBColorPickerTableCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Custom Color</string>
+			<key>showAlphaSlider</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeColor</string>
+		</dict>
+
+        <dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Color Transparency</string>
+            <key>footerText</key>
+            <string>Only applies to custom colors</string>
+		</dict>
+        <dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>max</key>
+			<real>1</real>
+			<key>min</key>
+			<real>0</real>
+			<key>showValue</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeAlpha</string>
+		</dict>
+
+        <dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Button Sizing</string>
+			<key>footerText</key>
+			<string>All values are measured in pixels</string>
+		</dict>
+        <dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Snooze Font</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeSize</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Snooze Width</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeWidth</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Snooze Height</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeHeight</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Snooze Corner Radius</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>snoozeCornerRadius</string>
+		</dict>
+    </array>
+</dict>
+</plist>

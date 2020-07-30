@@ -61,6 +61,46 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
+			<string>Shortcuts</string>
+			<key>footerText</key>
+			<string>Give your "Shortcut on Fire" some time to finish (seconds)</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Shortcut Delay</string>
+			<key>isDecimalPad</key>
+			<true/>
+			<key>key</key>
+			<string>shortcutDelay</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Bluetooth / AirPlay</string>
+			<key>footerText</key>
+			<string>Capitalization when connecting bluetooth or AirPlay matters or not. Capitalization always matters for Spotify casting</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Case Sensitive</string>
+			<key>key</key>
+			<string>caseSensitive</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
 			<string>Bluetooth</string>
 			<key>footerText</key>
 			<string>Force reconnect will first disconnect the bluetooth device if it's already connected and then reconnect (to force the audio output to switch if your device may be already connected when the alarm goes off). Retry time is the number of seconds to wait before checking if a bluetooth connection has succeeded.</string>
@@ -71,7 +111,17 @@
 			<key>defaults</key>
 			<string>com.zhenguwu.aurorepreferences</string>
 			<key>label</key>
-			<string>Force Reconnect</string>
+			<string>Disconnect After Dismiss</string>
+			<key>key</key>
+			<string>btDisconnect</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Force Device Reconnect</string>
 			<key>key</key>
 			<string>btForceReconnect</string>
 		</dict>
@@ -86,6 +136,44 @@
 			<true/>
 			<key>key</key>
 			<string>btRetryTime</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>AirPlay</string>
+			<key>footerText</key>
+			<string>If enabled, audio will be explicitly routed to the device speakers when there is no AirPlay or bluetooth device specified. May be helpful for those who accidently leave their headphones connect to their phone overnight</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Force Audio Route to Phone</string>
+			<key>key</key>
+			<string>airplayForcePhone</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Compatibility</string>
+			<key>footerText</key>
+			<string>Do not enable this unless an alert tells you to. Doubles wait times to help with slower devices, although it is highly unlikely any device will need this.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>defaults</key>
+			<string>com.zhenguwu.aurorepreferences</string>
+			<key>label</key>
+			<string>Compatibility Mode</string>
+			<key>key</key>
+			<string>compatibility</string>
 		</dict>
 
     </array>

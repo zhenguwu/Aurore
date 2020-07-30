@@ -1,5 +1,6 @@
 #import "AURPasscodeController.h"
 #import "../tools/helpers.h"
+#import "../tools/crypto.h"
 
 @implementation AURPasscodeController
 - (NSString *)topTitle {

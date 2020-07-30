@@ -9,9 +9,9 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>Aurore Settings</string>
+			<string>Settings</string>
 			<key>footerText</key>
-			<string>All settings should apply without a respring</string>
+			<string>All changes apply without a respring</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -68,17 +68,36 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
+			<string>Donate</string>
+			<key>footerText</key>
+			<string>Any tips would be helpful and greatly appreciated</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Buy Me a Coffee</string>
+			<key>action</key>
+			<string>auroreDonate</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
 			<string>Reset</string>
 			<key>footerText</key>
-			<string>Resetting will erase and reset all of the tweak's preferences to stock. (NOT IMPLEMENTED YET)</string>
+			<string>Resetting will erase and reset all of the tweak's preferences to stock. Try a reset if the tweak is not working properly</string>
 		</dict>
 		<dict>
 			<key>cell</key>
 			<string>PSButtonCell</string>
 			<key>label</key>
 			<string>Reset All Settings</string>
+			<key>isDestructive</key>
+			<true/>
 			<key>action</key>
-			<string>reset</string>
+			<string>auroreReset</string>
 		</dict>
 		
 	</array>

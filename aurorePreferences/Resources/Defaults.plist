@@ -20,6 +20,8 @@
 			<string>Music Link</string>
 			<key>isURL</key>
 			<true/>
+			<key>placeholder</key>
+			<string>Paste URL Here</string>
 			<key>key</key>
 			<string>link</string>
 		</dict>
@@ -30,6 +32,8 @@
 			<string>Aurore/defaults.plist</string>
 			<key>label</key>
 			<string>Link Preview</string>
+			<key>placeholder</key>
+			<string>Auto Generated</string>
 			<key>key</key>
 			<string>linkContext</string>
 		</dict>
@@ -52,6 +56,8 @@
 			<string>Max Volume</string>
 			<key>isNumeric</key>
 			<true/>
+			<key>placeholder</key>
+			<string>0 - 100%</string>
 			<key>key</key>
 			<string>volumeMax</string>
 		</dict>
@@ -64,6 +70,8 @@
 			<string>Fade In Time</string>
 			<key>isDecimalPad</key>
 			<true/>
+			<key>placeholder</key>
+			<string>Minutes to Max</string>
 			<key>key</key>
 			<string>volumeTime</string>
 		</dict>
@@ -74,6 +82,8 @@
 			<string>Aurore/defaults.plist</string>
 			<key>label</key>
 			<string>Bluetooth</string>
+			<key>placeholder</key>
+			<string>Device Name</string>
 			<key>key</key>
 			<string>bluetooth</string>
 		</dict>
@@ -84,8 +94,22 @@
 			<string>Aurore/defaults.plist</string>
 			<key>label</key>
 			<string>AirPlay</string>
+			<key>placeholder</key>
+			<string>Device Name</string>
 			<key>key</key>
 			<string>airplay</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Spotify Cast</string>
+			<key>placeholder</key>
+			<string>Device Name</string>
+			<key>key</key>
+			<string>cast</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -106,6 +130,8 @@
 			<string>Snooze Count</string>
 			<key>isNumeric</key>
 			<true/>
+			<key>placeholder</key>
+			<string>Allowed Attempts</string>
 			<key>key</key>
 			<string>snoozeCount</string>
 		</dict>
@@ -118,6 +144,8 @@
 			<string>Snooze Time</string>
 			<key>isDecimalPad</key>
 			<true/>
+			<key>placeholder</key>
+			<string>Minutes</string>
 			<key>key</key>
 			<string>snoozeTime</string>
 		</dict>
@@ -130,6 +158,8 @@
 			<string>Snooze Volume</string>
 			<key>isNumeric</key>
 			<true/>
+			<key>placeholder</key>
+			<string>0 - 100%</string>
 			<key>key</key>
 			<string>snoozeVolume</string>
 		</dict>
@@ -142,6 +172,8 @@
 			<string>Fade In Time After Snooze</string>
 			<key>isDecimalPad</key>
 			<true/>
+			<key>placeholder</key>
+			<string>Minutes</string>
 			<key>key</key>
 			<string>snoozeVolumeTime</string>
 		</dict>
@@ -161,9 +193,23 @@
 			<key>defaults</key>
 			<string>Aurore/defaults.plist</string>
 			<key>label</key>
-			<string>Run Shortcut</string>
+			<string>Shortcut On Fire</string>
+			<key>placeholder</key>
+			<string>Shortcut Name</string>
 			<key>key</key>
-			<string>shortcut</string>
+			<string>shortcutFire</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>Aurore/defaults.plist</string>
+			<key>label</key>
+			<string>Shortcut On Dismiss</string>
+			<key>placeholder</key>
+			<string>Shortcut Name</string>
+			<key>key</key>
+			<string>shortcutDismiss</string>
 		</dict>
 
     </array>

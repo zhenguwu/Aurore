@@ -19,7 +19,7 @@
 }
 
 - (void)setPreferenceValue:(id)value specifier:(PSSpecifier*)specifier {
-    if ([[NSFileManager defaultManager] fileExistsAtPath:@"/var/lib/dpkg/info/com.zhenguwu.aurore.list"]) {
+    if ([[NSFileManager defaultManager] fileExistsAtPath:drmPath]) {
         NSMutableDictionary *defaults = [NSMutableDictionary dictionary];
         [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:prefsPath]];
         [defaults setObject:value forKey:[specifier properties][@"key"]];
