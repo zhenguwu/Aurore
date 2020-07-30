@@ -15,6 +15,7 @@
     self.volumeTime = settings[@"volumeTime"];
     self.bluetooth = settings[@"bluetooth"];
     self.airplay = settings[@"airplay"];
+    self.cast = settings[@"cast"];
     self.linkChanged = NO;
     self.musicSettingsChanged = NO;
     return self;
@@ -31,9 +32,9 @@
 
 - (void)returnAndSave {
     if (self.musicSettingsChanged) {
-        [self.delegate auroreMusicTableControllerUpdateLink:self.link shuffle:self.shuffle volumeMax:self.volumeMax volumeTime:self.volumeTime bluetooth:self.bluetooth airplay:self.airplay];
+        [self.delegate auroreMusicTableControllerUpdateLink:self.link shuffle:self.shuffle volumeMax:self.volumeMax volumeTime:self.volumeTime bluetooth:self.bluetooth airplay:self.airplay cast:self.cast];
         NSString *link = self.link;
-        if ( ([link containsString:@"open.spotify.com"] && ([link containsString:@"playlist"] || [link containsString:@"track"])) || ([link containsString:@"music.apple.com"] && ([link containsString:@"playlist"] || [link containsString:@"station"])) ) {
+        if ( ([link containsString:@"open.spotify.com"] && ([link containsString:@"playlist"] || [link containsString:@"track"] || [link containsString:@"album"])) || ([link containsString:@"music.apple.com"] && ([link containsString:@"playlist"] || [link containsString:@"station"])) ) {
             [self.delegate auroreUpdateLinkContext:YES link:link reload:YES];
         } else {
             if (![link isEqualToString:@""]) {
@@ -55,7 +56,7 @@
         if (parent) {
             [parent setModalInPresentation:YES];
         } else if (self.musicSettingsChanged) {
-            [self.delegate auroreMusicTableControllerUpdateLink:self.link shuffle:self.shuffle volumeMax:self.volumeMax volumeTime:self.volumeTime bluetooth:self.bluetooth airplay:self.airplay];
+            [self.delegate auroreMusicTableControllerUpdateLink:self.link shuffle:self.shuffle volumeMax:self.volumeMax volumeTime:self.volumeTime bluetooth:self.bluetooth airplay:self.airplay cast:self.cast];
         }
     }
 }
@@ -65,6 +66,9 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if (section == 2) {
+        return 3;
+    }
     return 2;
 }
 
@@ -139,12 +143,19 @@
             textField.text = self.bluetooth;
             [textField addTarget:self action:@selector(bluetoothTextFieldChanged:) forControlEvents:UIControlEventEditingChanged];
             [musicCell.contentView addSubview:textField];
-        } else {
+        } else if (indexPath.row == 1) {
             musicCell.textLabel.text = @"AirPlay";
             textField.keyboardType = UIKeyboardTypeAlphabet;
             textField.placeholder = @"Device Name";
             textField.text = self.airplay;
-            [textField addTarget:self action:@selector(aiplayTextFieldChanged:) forControlEvents:UIControlEventEditingChanged];
+            [textField addTarget:self action:@selector(airplayTextFieldChanged:) forControlEvents:UIControlEventEditingChanged];
+            [musicCell.contentView addSubview:textField];
+        } else {
+            musicCell.textLabel.text = @"Spotify Cast";
+            textField.keyboardType = UIKeyboardTypeAlphabet;
+            textField.placeholder = @"Device Name";
+            textField.text = self.cast;
+            [textField addTarget:self action:@selector(castTextFieldChanged:) forControlEvents:UIControlEventEditingChanged];
             [musicCell.contentView addSubview:textField];
         }
     }
@@ -184,7 +195,7 @@
                 self.linkChanged = NO;
             }
             NSString *link = textField.text;
-            if ( ([link containsString:@"open.spotify.com"] && ([link containsString:@"playlist"] || [link containsString:@"track"])) || ([link containsString:@"music.apple.com"] && ([link containsString:@"playlist"] || [link containsString:@"station"])) ) {
+            if ( ([link containsString:@"open.spotify.com"] && ([link containsString:@"playlist"] || [link containsString:@"track"])) || ([link containsString:@"music.apple.com"] && ([link containsString:@"playlist"] || [link containsString:@"album"] || [link containsString:@"station"])) ) {
                 if (!self.isSleep) {
                     self.linkContext = [self.delegate auroreUpdateLinkContext:YES link:link reload:YES];
                     textField.text = self.linkContext;
@@ -247,6 +258,11 @@
 
 - (void)airplayTextFieldChanged:(UITextField *)textField {
     self.airplay = textField.text;
+    self.musicSettingsChanged = YES;
+}
+
+- (void)castTextFieldChanged:(UITextField *)textField {
+    self.cast = textField.text;
     self.musicSettingsChanged = YES;
 }
 @end

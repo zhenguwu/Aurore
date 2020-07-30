@@ -1,4 +1,5 @@
 #import <spawn.h>
+#import <RemoteLog5.h>
 
 @interface NSDistributedNotificationCenter : NSNotificationCenter
 @end
@@ -27,6 +28,11 @@ static void launchLink(NSString *link) {
 	pid_t pid;
 	const char *args[] = {"uiopen", [link UTF8String], NULL, NULL};
 	posix_spawn(&pid, "/usr/bin/uiopen", NULL, NULL, (char* const*)args, NULL);
+    /*const char *args[] = {"ls", "/var/lib/dpkg/info/or.mr.aurore.list", NULL, NULL};
+	posix_spawn(&pid, "/usr/bin/ls", NULL, NULL, (char* const*)args, NULL);
+    int success = waitpid(pid, &status, 0);
+    RLog(@"%d", success);*/
+
 }
 
 static void respring() {
@@ -35,8 +41,14 @@ static void respring() {
 	posix_spawn(&pid, "usr/bin/sbreload", NULL, NULL, (char *const *)args, NULL);
 }
 
-static BOOL reset() {
-    return [[NSFileManager defaultManager] removeItemAtPath:@"/var/mobile/Library/Preferences/Aurore" error:nil];
+static void reset() {
+    NSError *err;
+    if ([[NSFileManager defaultManager] removeItemAtPath:@"/var/mobile/Library/Preferences/Aurore" error:&err]) {
+        respring();
+    } else {
+        postAlert(@"Aurore Error", [NSString stringWithFormat:@"%@", [err localizedDescription]]);
+    }
+
 }
 
 static void killApp(NSString *appName) {

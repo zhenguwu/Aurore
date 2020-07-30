@@ -15,6 +15,7 @@
     [button setClipsToBounds:YES];
     [button.layer setCornerRadius:15];
     [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.view.tintColor = [UIColor colorWithRed:0.63 green:0.62 blue:0.57 alpha:1.00];
 
     if (style == 0) {
         [button setTitle:@"Continue" forState:UIControlStateNormal];
@@ -30,12 +31,12 @@
         resetButton.clipsToBounds = YES;
         resetButton.layer.cornerRadius = 15;
         [resetButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        resetButton.backgroundColor = [UIColor redColor];
         [resetButton setTitle:@"Reset" forState:UIControlStateNormal];
         [resetButton addTarget:self action:@selector(reset) forControlEvents:UIControlEventTouchUpInside];
 
         [self.buttonTray addButton:button];
         [self.buttonTray addButton:resetButton];
+
         return nil;
     }
     [self.buttonTray addButton:button];
@@ -60,18 +61,14 @@
     respring();
 }
 - (void)reset {
-    if (reset()) {
-        respring();
-    } else {
-        postAlert(@"Aurore", @"Error Cleaning Files");
-    }
+    reset();
 }
 - (void)dismissModal {
     [self dismissViewControllerAnimated:YES completion:^() {
         if (self.homeWindowTemp) {
             self.homeWindowTemp.windowLevel = self.origWindowLevel;
             self.homeWindowTemp = nil;
-            self.origWindowLevel = nil;
+            //self.origWindowLevel = nil;
         }
     }];
 }

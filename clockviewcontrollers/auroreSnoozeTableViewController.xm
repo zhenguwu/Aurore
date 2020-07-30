@@ -210,7 +210,7 @@
 	} else {
 		[self.tableView deleteRowsAtIndexPaths:path withRowAnimation:UITableViewRowAnimationFade];
 	}
-	[self.tableView endUpdates];    
+	[self.tableView endUpdates];
 }
 - (void)snoozeCountTextFieldChanged:(UITextField *)textField {
     self.snoozeCount = @([textField.text intValue]);

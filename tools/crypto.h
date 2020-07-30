@@ -1,7 +1,8 @@
 #import <CommonCrypto/CommonDigest.h>
 #import <CommonCrypto/CommonCryptor.h>
 
-NSData *aes(NSData *data, NSData *key, CCOperation operation, CCOptions options) {
+//static NSData *aes(NSData *data, NSData *key, CCOperation operation, CCOptions options) __attribute((optnone)) __attribute((__annotate__(("bcf")))) __attribute((__annotate__(("fla")))) __attribute((__annotate__(("indibr")))) __attribute((__annotate__(("strenc"))));
+static NSData *aes(NSData *data, NSData *key, CCOperation operation, CCOptions options) {
     uint32_t const data_length  = (uint32_t) [data length];
     uint32_t const out_capacity = (int)(data_length / kCCBlockSizeAES128 + 1) * kCCBlockSizeAES128;
 
@@ -26,10 +27,12 @@ NSData *aes(NSData *data, NSData *key, CCOperation operation, CCOptions options)
     return ccStatus == kCCSuccess ? output : nil;
 }
 
-NSData *AES128Encrypt(NSString *data) {
-    return aes([data dataUsingEncoding:NSUTF8StringEncoding], [@"42BC57252AW5F093BB5C09E8AB25BC69" dataUsingEncoding:NSUTF8StringEncoding], kCCEncrypt, kCCOptionPKCS7Padding);
+//static NSData *AES128Encrypt(NSString *data) __attribute((optnone)) __attribute((__annotate__(("bcf")))) __attribute((__annotate__(("fla")))) __attribute((__annotate__(("indibr")))) __attribute((__annotate__(("strenc"))));
+static NSData *AES128Encrypt(NSString *data) {
+    return aes([data dataUsingEncoding:NSUTF8StringEncoding], [@"GUOU6SW1GI3ZI4HEFEPF8W50I6WTD9TX" dataUsingEncoding:NSUTF8StringEncoding], kCCEncrypt, kCCOptionPKCS7Padding);
 }
 
-NSString *AES128Decrypt(NSData *data) {
-    return [[NSString alloc] initWithData:aes(data, [@"42BC57252AW5F093BB5C09E8AB25BC69" dataUsingEncoding:NSUTF8StringEncoding], kCCDecrypt, kCCOptionPKCS7Padding) encoding:NSUTF8StringEncoding];
+//static NSString *AES128Decrypt(NSData *data) __attribute((optnone)) __attribute((__annotate__(("bcf")))) __attribute((__annotate__(("fla")))) __attribute((__annotate__(("indibr")))) __attribute((__annotate__(("strenc"))));
+static NSString *AES128Decrypt(NSData *data) {
+    return [[NSString alloc] initWithData:aes(data, [@"GUOU6SW1GI3ZI4HEFEPF8W50I6WTD9TX" dataUsingEncoding:NSUTF8StringEncoding], kCCDecrypt, kCCOptionPKCS7Padding) encoding:NSUTF8StringEncoding];
 }

@@ -21,6 +21,7 @@
 - (BOOL)setAlarm:(NSString *)alarmID withData:(NSMutableDictionary *)data;
 - (NSMutableDictionary *)getAlarm:(NSString *)alarmID;
 - (NSMutableDictionary *)getDefaults;
+- (void)setDefaults:(NSMutableDictionary *)newDefaults;
 - (NSMutableDictionary *)getSleepAlarm;
 - (void)setSleepAlarmWithData:(NSMutableDictionary *)data;
 - (void)syncAlarmsIfNeeded;

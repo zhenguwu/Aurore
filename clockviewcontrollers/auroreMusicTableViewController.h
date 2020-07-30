@@ -1,5 +1,5 @@
 @protocol auroreMusicDelegate <NSObject>
-- (void)auroreMusicTableControllerUpdateLink:(NSString *)link shuffle:(NSNumber *)shuffle volumeMax:(NSNumber *)volumeMax volumeTime:(NSNumber *)volumeTime bluetooth:(NSString *)bluetooth airplay:(NSString *)airplay;
+- (void)auroreMusicTableControllerUpdateLink:(NSString *)link shuffle:(NSNumber *)shuffle volumeMax:(NSNumber *)volumeMax volumeTime:(NSNumber *)volumeTime bluetooth:(NSString *)bluetooth airplay:(NSString *)airplay cast:(NSString *)cast;
 - (NSString *)auroreUpdateLinkContext:(BOOL)correct link:(NSString *)link reload:(BOOL)reload;
 @end
 
@@ -13,6 +13,7 @@
 @property (nonatomic,retain) NSNumber *volumeTime;
 @property (nonatomic,retain) NSString *bluetooth;
 @property (nonatomic,retain) NSString *airplay;
+@property (nonatomic,retain) NSString *cast;
 @property (nonatomic,assign) BOOL linkChanged;
 @property (nonatomic,assign) BOOL musicSettingsChanged;
 - (id)initWithSettings:(NSDictionary *)settings inset:(BOOL)inset isSleep:(BOOL)isSleep;
@@ -24,4 +25,5 @@
 - (void)volumeTimeTextFieldChanged:(UITextField *)textField;
 - (void)bluetoothTextFieldChanged:(UITextField *)textField;
 - (void)airplayTextFieldChanged:(UITextField *)textField;
+- (void)castTextFieldChanged:(UITextField *)textField;
 @end

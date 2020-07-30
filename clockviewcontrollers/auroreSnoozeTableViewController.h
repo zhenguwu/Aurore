@@ -2,6 +2,7 @@
 - (void)auroreSnoozeTableControllerUpdateSnoozeEnabled:(NSNumber *)snoozeEnabled snoozeCount:(NSNumber *)snoozeCount snoozeTime:(NSNumber *)snoozeTime snoozeVolume:(NSNumber *)snoozeVolume snoozeVolumeTime:(NSNumber *)snoozeVolumeTime;
 @end
 
+/*
 @interface PSSegmentableSlider : UISlider
 - (id)initWithFrame:(CGRect)arg1;
 - (void)setValue:(float)arg1 animated:(BOOL)arg2;
@@ -9,7 +10,7 @@
 - (void)setSegmentCount:(unsigned long long)arg1;
 
 
-@end
+@end*/
 
 @interface auroreSnoozeTableViewController : UITableViewController <UITextFieldDelegate>
 @property (nonatomic,assign) id <auroreSnoozeDelegate> delegate;
