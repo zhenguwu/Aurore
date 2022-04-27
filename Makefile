@@ -8,6 +8,7 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = Aurore
 
 ARCHS = arm64
+# change default toolchain to use hikari
 TARGET_CC=/opt/theos/toolchain/XcodeDefault1.xctoolchain/usr/bin/clang
 TARGET_CXX=/opt/theos/toolchain/XcodeDefault1.xctoolchain/usr/bin/clang++
 
@@ -22,5 +23,5 @@ SUBPROJECTS += aurorePreferences
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
 
-#after-install::
-#	install.exec "killall -9 Music & killall -9 Spotify & killall -9 mobiletimerd";
+after-install::
+	install.exec "killall -9 Music & killall -9 Spotify & killall -9 mobiletimerd";
